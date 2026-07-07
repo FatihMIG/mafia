@@ -12,6 +12,7 @@ import { InvestigationLog } from "../components/game/InvestigationLog";
 import { PhaseTransitionOverlay } from "../components/game/PhaseTransitionOverlay";
 import { EliminationRevealOverlay } from "../components/game/EliminationRevealOverlay";
 import { VoiceChatBar } from "../components/game/VoiceChatBar";
+import { MusicToggle } from "../components/game/MusicToggle";
 
 function useCountdown(phaseEndsAt: number | null): number | null {
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
@@ -69,9 +70,12 @@ export function GamePage() {
             <h1 className="font-display text-xl text-mafia-accent">{PHASE_LABELS[state.game.phase]}</h1>
             <p className="text-xs text-mafia-muted">Round {state.game.round}</p>
           </div>
-          {secondsLeft !== null && (
-            <div className="font-mono text-2xl text-mafia-accent2">{String(secondsLeft).padStart(2, "0")}s</div>
-          )}
+          <div className="flex items-center gap-3">
+            <MusicToggle />
+            {secondsLeft !== null && (
+              <div className="font-mono text-2xl text-mafia-accent2">{String(secondsLeft).padStart(2, "0")}s</div>
+            )}
+          </div>
         </div>
 
         <div

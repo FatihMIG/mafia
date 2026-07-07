@@ -58,7 +58,15 @@ export function NightPhaseView() {
       ) : !canAct ? (
         <p className="text-mafia-muted">The town sleeps. Mafia, Doctor and Detective are making their move.</p>
       ) : submitted ? (
-        <p className="text-mafia-muted">Choice locked in. Waiting for the others…</p>
+        <div className="space-y-2">
+          <p className="text-mafia-muted">
+            Choice locked in{selected ? `: ${selectablePlayers.find((p) => p.id === selected)?.nickname ?? ""}` : ""}.
+            Waiting for the others…
+          </p>
+          <Button variant="ghost" onClick={() => setSubmitted(false)}>
+            Cancel
+          </Button>
+        </div>
       ) : (
         <>
           <p className="text-mafia-muted">{roleInstruction(state.myRole)}</p>
