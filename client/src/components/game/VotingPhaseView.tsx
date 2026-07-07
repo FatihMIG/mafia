@@ -17,7 +17,7 @@ export function VotingPhaseView() {
 
   return (
     <div className="space-y-4 text-center">
-      <h2 className="font-display text-2xl text-mafia-accent2">Time to vote</h2>
+      <h2 className="title-3d-gold font-display text-2xl">Time to vote</h2>
 
       {!myPlayer?.isAlive ? (
         <p className="text-mafia-muted">You are eliminated and cannot vote.</p>

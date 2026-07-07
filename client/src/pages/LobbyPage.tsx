@@ -36,7 +36,7 @@ export function LobbyPage() {
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 px-4 py-6 text-mafia-text sm:py-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-3xl text-mafia-accent">Lobby</h1>
+        <h1 className="title-3d-gold font-display text-3xl">Lobby</h1>
         <RoomCodeBadge roomCode={code!.toUpperCase()} />
       </div>
 

@@ -105,7 +105,20 @@ export function gameReducer(state: AppState, action: AppAction): AppState {
       };
 
     case "GAME_STARTED":
-      return state;
+      // Covers both a fresh start and "play again" — clear every per-game field
+      // left over from a previous round so nothing stale (last night's death,
+      // the previous winner, old chat) bleeds into the new one before the
+      // upcoming role_assigned/phase_changed events repopulate it.
+      return {
+        ...state,
+        myRole: null,
+        investigationResults: [],
+        voteTally: null,
+        revealedPlayers: null,
+        game: state.game
+          ? { ...state.game, lastNightResult: null, lastVoteResult: null, winner: null, deadPlayerIds: [], chatLog: [] }
+          : state.game,
+      };
 
     case "ROLE_ASSIGNED":
       return { ...state, myRole: action.role };

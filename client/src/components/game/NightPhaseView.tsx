@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Role } from "@wolf/shared";
 import { useGame, useMyPlayer } from "../../state/GameContext";
 import { submitNightAction } from "../../state/actions";
+import { ROLE_INFO } from "../../state/roleDisplay";
 import { Button } from "../ui/Button";
 
 const ACTING_ROLES: Role[] = [Role.MAFIA, Role.DOCTOR, Role.DETECTIVE];
@@ -45,7 +46,7 @@ export function NightPhaseView() {
 
   return (
     <div className="space-y-4 text-center">
-      <h2 className="font-display text-2xl text-mafia-accent2">Night falls over the town…</h2>
+      <h2 className="title-3d-gold font-display text-2xl">Night falls over the town…</h2>
 
       {lastVote && (
         <p className="text-sm text-mafia-muted">
@@ -69,7 +70,9 @@ export function NightPhaseView() {
         </div>
       ) : (
         <>
-          <p className="text-mafia-muted">{roleInstruction(state.myRole)}</p>
+          <p className="text-mafia-muted">
+            {ROLE_INFO[state.myRole].icon} {roleInstruction(state.myRole)}
+          </p>
           <div className="flex flex-wrap justify-center gap-2">
             {selectablePlayers.map((p) => (
               <button

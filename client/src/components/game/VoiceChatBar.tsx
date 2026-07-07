@@ -40,9 +40,11 @@ export function VoiceChatBar() {
     isTransmitting,
     remoteStreams,
     peerConnectionStates,
+    lastIceError,
   } = useVoiceChat();
 
   const otherHumans = state.players.filter((p) => !p.isBot && p.id !== state.playerId);
+  const anyUnhealthy = otherHumans.some((p) => peerConnectionStates[p.id] !== "connected");
 
   return (
     <div className="space-y-2 rounded-lg border border-mafia-panel2 bg-mafia-panel px-4 py-3 text-sm">
@@ -85,6 +87,12 @@ export function VoiceChatBar() {
             );
           })}
         </div>
+      )}
+
+      {anyUnhealthy && lastIceError && (
+        <p className="text-xs text-red-400" title="Diagnostic info — helps figure out why a connection isn't going through">
+          ⚠️ network relay issue: {lastIceError}
+        </p>
       )}
 
       {Object.entries(remoteStreams).map(([peerId, stream]) => (

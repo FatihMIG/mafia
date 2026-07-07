@@ -11,6 +11,7 @@ declare global {
     /** Diagnostic-only hooks for E2E tests to inspect real WebRTC state; unused by app logic. */
     __wolfVoiceStates?: () => Record<string, RTCPeerConnectionState>;
     __wolfVoiceLocalEnabled?: () => boolean | null;
+    __wolfVoiceIceError?: () => string | null;
   }
 }
 
@@ -21,6 +22,7 @@ export function useVoiceChat() {
   const [selfMuted, setSelfMuted] = useState(false);
   const [remoteStreams, setRemoteStreams] = useState<Record<string, MediaStream>>({});
   const [peerConnectionStates, setPeerConnectionStates] = useState<Record<string, RTCPeerConnectionState>>({});
+  const [lastIceError, setLastIceError] = useState<string | null>(null);
   const managerRef = useRef<PeerConnectionManager | null>(null);
   const wasConnected = useRef<Record<string, boolean>>({});
 
@@ -44,11 +46,13 @@ export function useVoiceChat() {
     managerRef.current = manager;
     window.__wolfVoiceStates = () => manager.getConnectionStates();
     window.__wolfVoiceLocalEnabled = () => manager.isLocalTrackEnabled();
+    window.__wolfVoiceIceError = () => manager.getLastIceError();
     return () => {
       manager.destroy();
       managerRef.current = null;
       window.__wolfVoiceStates = undefined;
       window.__wolfVoiceLocalEnabled = undefined;
+      window.__wolfVoiceIceError = undefined;
     };
   }, [myPlayerId]);
 
@@ -90,6 +94,7 @@ export function useVoiceChat() {
   useEffect(() => {
     const interval = setInterval(() => {
       setPeerConnectionStates(managerRef.current?.getConnectionStates() ?? {});
+      setLastIceError(managerRef.current?.getLastIceError() ?? null);
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -119,5 +124,6 @@ export function useVoiceChat() {
     isTransmitting: shouldTransmit,
     remoteStreams,
     peerConnectionStates,
+    lastIceError,
   };
 }

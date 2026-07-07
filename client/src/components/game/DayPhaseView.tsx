@@ -27,7 +27,7 @@ export function DayPhaseView() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-center font-display text-2xl text-mafia-accent2">Daybreak</h2>
+      <h2 className="title-3d-gold text-center font-display text-2xl">Daybreak</h2>
       {state.game?.lastNightResult && (
         <p className="text-center text-mafia-muted">
           {killedPlayer ? `${killedPlayer.nickname} was found dead this morning.` : "Everyone survived the night."}

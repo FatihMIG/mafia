@@ -40,3 +40,20 @@ body {
     inset 0 2px 4px rgba(0, 0, 0, 0.45),
     inset 0 -1px 0 rgba(255, 255, 255, 0.08);
 }
+
+/* 3D gold titles: a metallic gradient fill (via background-clip: text) plus
+   stacked text-shadows stepping down in a darker gold at increasing offsets,
+   which is what actually reads as "3D" — the gradient alone would look flat. */
+.title-3d-gold {
+  background: linear-gradient(180deg, #fff3c4 0%, #e6c14d 45%, #b8860b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow:
+    0 1px 0 #8a6d1f,
+    0 2px 0 #7a5e19,
+    0 3px 0 #6a5014,
+    0 4px 0 #5a420f,
+    0 5px 8px rgba(0, 0, 0, 0.5);
+}

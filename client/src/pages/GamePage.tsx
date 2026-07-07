@@ -13,6 +13,7 @@ import { PhaseTransitionOverlay } from "../components/game/PhaseTransitionOverla
 import { EliminationRevealOverlay } from "../components/game/EliminationRevealOverlay";
 import { VoiceChatBar } from "../components/game/VoiceChatBar";
 import { MusicToggle } from "../components/game/MusicToggle";
+import { MyRoleBadge } from "../components/game/MyRoleBadge";
 import { TerminateRoomButton } from "../components/lobby/TerminateRoomButton";
 
 function useCountdown(phaseEndsAt: number | null): number | null {
@@ -68,9 +69,12 @@ export function GamePage() {
     <div className="min-h-screen bg-mafia-bg px-4 py-8 text-mafia-text">
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="font-display text-xl text-mafia-accent">{PHASE_LABELS[state.game.phase]}</h1>
-            <p className="text-xs text-mafia-muted">Round {state.game.round}</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="title-3d-gold font-display text-xl">{PHASE_LABELS[state.game.phase]}</h1>
+              <p className="text-xs text-mafia-muted">Round {state.game.round}</p>
+            </div>
+            <MyRoleBadge />
           </div>
           <div className="flex items-center gap-3">
             <MusicToggle />

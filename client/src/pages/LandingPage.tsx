@@ -41,9 +41,19 @@ export function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-mafia-bg px-4">
       <div className="text-center">
-        <h1 className="font-display text-5xl font-bold text-mafia-accent">MAFIA</h1>
-        <p className="mt-2 text-mafia-muted">A game of trust, lies, and elimination.</p>
+        <h1 className="title-3d-gold font-display text-6xl font-bold">MAFIA</h1>
+        <p className="mt-2 font-handwritten text-2xl text-mafia-muted">A game of trust, lies, and elimination.</p>
       </div>
+
+      <Card className="w-full max-w-md text-sm text-mafia-muted">
+        <p className="mb-1 font-semibold text-mafia-text">🎭 Objective</p>
+        <p>
+          The Town must find and vote out every Mafia member hiding among them. Each night the Mafia secretly
+          strikes, the Doctor protects someone, and the Detective investigates a suspect. Each day, everyone debates
+          and votes someone out. <span className="text-mafia-text">Town wins</span> by eliminating all Mafia —{" "}
+          <span className="text-mafia-text">Mafia wins</span> if they ever equal or outnumber the Town.
+        </p>
+      </Card>
 
       <Card className="w-full max-w-md space-y-6">
         <div className="space-y-2">

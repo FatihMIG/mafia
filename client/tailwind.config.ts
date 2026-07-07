@@ -21,6 +21,7 @@ export default {
       },
       fontFamily: {
         display: ["Georgia", "serif"],
+        handwritten: ["'Caveat'", "cursive"],
       },
     },
   },

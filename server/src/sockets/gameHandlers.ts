@@ -1,4 +1,4 @@
-import { MIN_PLAYERS } from "@wolf/shared";
+import { MIN_PLAYERS, GamePhase } from "@wolf/shared";
 import type { SubmitNightActionPayload, CastVotePayload, SendChatMessagePayload } from "@wolf/shared";
 import { GameEngine, type GameEvents } from "../game/GameEngine.js";
 import { sanitizeChatText } from "../util/sanitize.js";
@@ -41,6 +41,12 @@ function makeGameEvents(io: IOServer, room: Room): GameEvents {
   };
 }
 
+function startNewGame(io: IOServer, room: Room): void {
+  room.gameEngine = new GameEngine(room, makeGameEvents(io, room));
+  io.to(room.code).emit("game_started");
+  room.gameEngine.start();
+}
+
 export function registerGameHandlers(io: IOServer, socket: IOSocket): void {
   socket.on("start_game", () => {
     const { room, player } = currentRoomAndPlayer(socket);
@@ -50,10 +56,18 @@ export function registerGameHandlers(io: IOServer, socket: IOSocket): void {
       socket.emit("error", { code: "NOT_ENOUGH_PLAYERS", message: `Need at least ${MIN_PLAYERS} players.` });
       return;
     }
+    startNewGame(io, room);
+  });
 
-    room.gameEngine = new GameEngine(room, makeGameEvents(io, room));
-    io.to(room.code).emit("game_started");
-    room.gameEngine.start();
+  socket.on("play_again", () => {
+    const { room, player } = currentRoomAndPlayer(socket);
+    if (!room || !player || player.id !== room.hostPlayerId) return;
+    if (room.gameEngine?.phase !== GamePhase.GAME_OVER) return;
+    if (room.players.size < MIN_PLAYERS) {
+      socket.emit("error", { code: "NOT_ENOUGH_PLAYERS", message: `Need at least ${MIN_PLAYERS} players.` });
+      return;
+    }
+    startNewGame(io, room);
   });
 
   socket.on("submit_night_action", (payload: SubmitNightActionPayload) => {

@@ -4,33 +4,54 @@ import { socket } from "../socket/socket";
 // STUN alone frequently fails to connect two peers across different real-world
 // networks (symmetric NATs, mobile carrier NAT, restrictive firewalls) — it
 // only helps peers discover their public address, it can't relay media when a
-// direct path isn't possible. The free Open Relay Project TURN servers are
-// added as a fallback for exactly that case (best-effort, no uptime SLA — if
-// this ever needs to be rock-solid, swap in a paid/self-hosted TURN server).
-const ICE_SERVERS: RTCIceServer[] = [
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun.relay.metered.ca:80" },
-  {
-    urls: "turn:global.relay.metered.ca:80",
-    username: "openrelayproject",
-    credential: "openrelayproject",
-  },
-  {
-    urls: "turn:global.relay.metered.ca:80?transport=tcp",
-    username: "openrelayproject",
-    credential: "openrelayproject",
-  },
-  {
-    urls: "turn:global.relay.metered.ca:443",
-    username: "openrelayproject",
-    credential: "openrelayproject",
-  },
-  {
-    urls: "turns:global.relay.metered.ca:443?transport=tcp",
-    username: "openrelayproject",
-    credential: "openrelayproject",
-  },
-];
+// direct path isn't possible. A TURN relay is the fallback for that case.
+//
+// The Open Relay Project's plain openrelayproject/openrelayproject demo
+// credentials are deprecated — they now require either a signed-up API key,
+// or (no signup needed) their documented "static auth" TURN REST API scheme:
+// ephemeral username/credential pairs derived from a shared secret via
+// HMAC-SHA1, the same mechanism Nextcloud/Matrix use against this service.
+// Best-effort, no uptime SLA — if this ever needs to be rock-solid, swap in a
+// paid/self-hosted TURN server instead.
+const TURN_HOST = "staticauth.openrelay.metered.ca";
+const TURN_SHARED_SECRET = "openrelayprojectsecret";
+const TURN_CREDENTIAL_TTL_SEC = 3600;
+
+// staticauth.openrelay.metered.ca only answers TURN allocate requests, not plain
+// STUN binding requests — adding it as a `stun:` entry produces a "701 STUN host
+// lookup received error" for that candidate (harmless — Google's STUN server
+// still covers reflexive-candidate discovery — but noisy, so it's omitted).
+const STATIC_ICE_SERVERS: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
+
+async function computeTurnCredential(): Promise<{ username: string; credential: string }> {
+  const username = String(Math.floor(Date.now() / 1000) + TURN_CREDENTIAL_TTL_SEC);
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(TURN_SHARED_SECRET),
+    { name: "HMAC", hash: "SHA-1" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(username));
+  const credential = btoa(String.fromCharCode(...new Uint8Array(signature)));
+  return { username, credential };
+}
+
+async function buildIceServers(): Promise<RTCIceServer[]> {
+  try {
+    const { username, credential } = await computeTurnCredential();
+    return [
+      ...STATIC_ICE_SERVERS,
+      { urls: `turn:${TURN_HOST}:80`, username, credential },
+      { urls: `turn:${TURN_HOST}:80?transport=tcp`, username, credential },
+      { urls: `turns:${TURN_HOST}:443?transport=tcp`, username, credential },
+    ];
+  } catch (err) {
+    console.warn("[voice] TURN credential computation failed, falling back to STUN-only", err);
+    return STATIC_ICE_SERVERS;
+  }
+}
+
 const MAX_REBUILD_ATTEMPTS = 5;
 
 interface PeerEntry {
@@ -49,11 +70,21 @@ export class PeerConnectionManager {
   private localStream: MediaStream | null = null;
   private rebuildAttempts = new Map<string, number>();
   private destroyed = false;
+  private lastIceError: string | null = null;
+  // Starts STUN-only; upgraded in place once the TURN credential HMAC resolves
+  // (a same-thread crypto computation, no network round-trip — this reliably
+  // completes well before any real peer connection gets created in practice,
+  // so no caller needs to await it directly).
+  private iceServers: RTCIceServer[] = STATIC_ICE_SERVERS;
 
   constructor(
     private myPlayerId: string,
     private onRemoteStream: (peerId: string, stream: MediaStream | null) => void,
-  ) {}
+  ) {
+    buildIceServers().then((servers) => {
+      this.iceServers = servers;
+    });
+  }
 
   setLocalStream(stream: MediaStream): void {
     this.localStream = stream;
@@ -134,6 +165,11 @@ export class PeerConnectionManager {
     return Object.fromEntries([...this.peers.entries()].map(([id, entry]) => [id, entry.pc.connectionState]));
   }
 
+  /** Diagnostic only — most recent ICE candidate-gathering error across any peer, if any. */
+  getLastIceError(): string | null {
+    return this.lastIceError;
+  }
+
   /** Diagnostic only — whether the local mic track is currently enabled (transmitting). */
   isLocalTrackEnabled(): boolean | null {
     return this.localStream?.getAudioTracks()[0]?.enabled ?? null;
@@ -147,7 +183,7 @@ export class PeerConnectionManager {
   }
 
   private createPeer(peerId: string, isInitiator: boolean): PeerEntry {
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    const pc = new RTCPeerConnection({ iceServers: this.iceServers });
     const entry: PeerEntry = { pc, isInitiator };
     this.peers.set(peerId, entry);
 
@@ -159,6 +195,11 @@ export class PeerConnectionManager {
     this.syncLocalTrack(pc);
 
     pc.ontrack = (e) => this.onRemoteStream(peerId, e.streams[0] ?? null);
+    pc.onicecandidateerror = (e) => {
+      const err = e as RTCPeerConnectionIceErrorEvent;
+      this.lastIceError = `${err.errorCode} ${err.errorText} (${err.url})`;
+      console.warn(`[voice] ICE candidate error for ${peerId}:`, this.lastIceError);
+    };
     pc.onicecandidate = (e) => {
       if (e.candidate) {
         socket.emit("voice_signal", {

@@ -58,6 +58,10 @@ export class GameEngine {
     for (const player of this.room.players.values()) {
       if (player.role) this.events.onRoleAssigned(player.id, { role: player.role });
     }
+    // Needed for "play again": assignRoles resets isAlive=true for everyone,
+    // but clients still hold whatever isAlive/eliminated state the previous
+    // game ended with until they hear about it.
+    this.events.onRoomUpdate();
     this.round = 1;
     this.transitionTo(GamePhase.ROLE_REVEAL, ROLE_REVEAL_DURATION_SEC);
   }

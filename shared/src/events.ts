@@ -143,6 +143,7 @@ export interface ClientToServerEvents {
   add_bot: () => void;
   voice_signal: (payload: VoiceSignalPayload) => void;
   terminate_room: () => void;
+  play_again: () => void;
 }
 
 export interface ServerToClientEvents {

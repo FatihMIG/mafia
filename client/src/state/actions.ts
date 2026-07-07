@@ -97,3 +97,7 @@ export function addBot(): void {
 export function terminateRoom(): void {
   socket.emit("terminate_room");
 }
+
+export function playAgain(): void {
+  socket.emit("play_again");
+}
