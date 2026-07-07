@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: wolf-mafia-server
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build -w server
+    startCommand: node server/dist/index.js
+    envVars:
+      - key: CLIENT_ORIGIN
+        value: https://fatihmig.github.io
