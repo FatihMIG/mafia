@@ -21,7 +21,7 @@ export function RoomCodeBadge({ roomCode }: Props) {
         {roomCode}
       </div>
       <Button variant="secondary" onClick={copyLink}>
-        {copied ? "Copied!" : "Copy Link"}
+        {copied ? "✅ Copied!" : "🔗 Copy Link"}
       </Button>
     </div>
   );

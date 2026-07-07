@@ -5,6 +5,7 @@ import { getStoredSession, clearStoredSession } from "./state/session";
 import { rejoinRoom } from "./state/actions";
 import { AppRoutes } from "./router";
 import { ErrorBanner } from "./components/ui/ErrorBanner";
+import { VersionBadge } from "./components/ui/VersionBadge";
 
 export function App() {
   const { state, dispatch } = useGame();
@@ -41,6 +42,7 @@ export function App() {
     <>
       <ErrorBanner />
       <AppRoutes />
+      <VersionBadge />
     </>
   );
 }

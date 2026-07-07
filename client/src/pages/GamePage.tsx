@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { GamePhase } from "@wolf/shared";
-import { useGame } from "../state/GameContext";
+import { useGame, useIsHost } from "../state/GameContext";
 import { PlayerAvatar } from "../components/game/PlayerAvatar";
 import { RoleRevealCard } from "../components/game/RoleRevealCard";
 import { NightPhaseView } from "../components/game/NightPhaseView";
@@ -13,6 +13,7 @@ import { PhaseTransitionOverlay } from "../components/game/PhaseTransitionOverla
 import { EliminationRevealOverlay } from "../components/game/EliminationRevealOverlay";
 import { VoiceChatBar } from "../components/game/VoiceChatBar";
 import { MusicToggle } from "../components/game/MusicToggle";
+import { TerminateRoomButton } from "../components/lobby/TerminateRoomButton";
 
 function useCountdown(phaseEndsAt: number | null): number | null {
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
@@ -42,6 +43,7 @@ const PHASE_LABELS: Record<string, string> = {
 export function GamePage() {
   const { code } = useParams<{ code: string }>();
   const { state } = useGame();
+  const isHost = useIsHost();
   const navigate = useNavigate();
   const secondsLeft = useCountdown(state.game?.phaseEndsAt ?? null);
   const rosterRef = useRef<HTMLDivElement>(null);
@@ -97,6 +99,12 @@ export function GamePage() {
         </div>
 
         <InvestigationLog />
+
+        {isHost && (
+          <div className="flex justify-center">
+            <TerminateRoomButton />
+          </div>
+        )}
       </div>
     </div>
   );

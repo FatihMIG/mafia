@@ -31,7 +31,7 @@ export function PlayerList({ players, onKick, canKick }: Props) {
               onClick={() => onKick?.(player.id)}
               className="text-xs text-mafia-muted hover:text-red-400"
             >
-              Kick
+              👋 Kick
             </button>
           )}
         </li>

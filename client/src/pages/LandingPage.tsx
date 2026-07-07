@@ -65,7 +65,7 @@ export function LandingPage() {
             </label>
           </div>
           <Button className="w-full" disabled={!canSubmit} onClick={handleCreate}>
-            Create Room
+            🃏 Create Room
           </Button>
         </div>
 
@@ -86,7 +86,7 @@ export function LandingPage() {
               className="flex-1 uppercase tracking-widest"
             />
             <Button variant="secondary" disabled={!canSubmit || !roomCode.trim()} onClick={handleJoin}>
-              Join
+              ➡️ Join
             </Button>
           </div>
         </div>

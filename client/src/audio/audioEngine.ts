@@ -1,23 +1,78 @@
 /**
  * Procedurally-generated audio via the Web Audio API — no external sound
- * files. The background track is a looping noir-jazz walking bassline in D
- * minor (Dm7 → Bbmaj7 → Gm7 → A7) with syncopated dissonant "stab" chords and
- * brushed-hi-hat noise ticks for tension, scheduled with a standard lookahead
- * scheduler so timing stays tight regardless of setInterval jitter.
+ * files. Each track is a looping noir-jazz walking bassline with syncopated
+ * dissonant "stab" chords and brushed-hi-hat noise ticks for tension,
+ * scheduled with a standard lookahead scheduler so timing stays tight
+ * regardless of setInterval jitter.
  */
 
-const BPM = 92;
-const SWING_RATIO = 0.66;
+interface Track {
+  name: string;
+  bpm: number;
+  swingRatio: number;
+  /** Walking bassline in Hz, one full 4-chord progression (4 notes/chord). */
+  bassPatternHz: number[];
+  /** Multipliers above the stab's base frequency — voicing/dissonance character. */
+  stabIntervals: number[];
+}
+
+const TRACKS: Track[] = [
+  {
+    // Dm7 → Bbmaj7 → Gm7 → A7
+    name: "Smoky Room",
+    bpm: 92,
+    swingRatio: 0.66,
+    bassPatternHz: [
+      146.83, 174.61, 220.0, 261.63,
+      116.54, 146.83, 174.61, 220.0,
+      98.0, 116.54, 146.83, 174.61,
+      110.0, 138.59, 164.81, 196.0,
+    ],
+    stabIntervals: [1, 1.1892, 1.4983],
+  },
+  {
+    // Cm7 → Abmaj7 → Fm7 → G7, faster and more syncopated
+    name: "Back Alley",
+    bpm: 104,
+    swingRatio: 0.62,
+    bassPatternHz: [
+      130.81, 155.56, 196.0, 233.08,
+      103.83, 130.81, 155.56, 196.0,
+      87.31, 103.83, 130.81, 155.56,
+      98.0, 123.47, 146.83, 174.61,
+    ],
+    stabIntervals: [1, 1.2, 1.5],
+  },
+  {
+    // Am7 → Fmaj7 → Dm7 → E7, slower and moodier
+    name: "Velvet Shadow",
+    bpm: 76,
+    swingRatio: 0.68,
+    bassPatternHz: [
+      110.0, 130.81, 164.81, 196.0,
+      87.31, 110.0, 130.81, 164.81,
+      73.42, 87.31, 110.0, 130.81,
+      82.41, 103.83, 123.47, 146.83,
+    ],
+    stabIntervals: [1, 1.5],
+  },
+  {
+    // Em7 → Cmaj7 → Am7 → B7, tightest dissonance (minor 2nd in the stab)
+    name: "Double Cross",
+    bpm: 98,
+    swingRatio: 0.64,
+    bassPatternHz: [
+      82.41, 98.0, 123.47, 146.83,
+      65.41, 82.41, 98.0, 123.47,
+      110.0, 130.81, 164.81, 196.0,
+      123.47, 155.56, 185.0, 220.0,
+    ],
+    stabIntervals: [1, 1.0595, 1.4983],
+  },
+];
+
 const SCHEDULE_AHEAD_SEC = 0.2;
 const SCHEDULER_INTERVAL_MS = 50;
-
-// D3 F3 A3 C4 (Dm7) → Bb2 D3 F3 A3 (Bbmaj7) → G2 Bb2 D3 F3 (Gm7) → A2 C#3 E3 G3 (A7, tension before resolving to i)
-const BASS_PATTERN_HZ = [
-  146.83, 174.61, 220.0, 261.63,
-  116.54, 146.83, 174.61, 220.0,
-  98.0, 116.54, 146.83, 174.61,
-  110.0, 138.59, 164.81, 196.0,
-];
 
 class AudioEngine {
   private ctx: AudioContext | null = null;
@@ -28,6 +83,7 @@ class AudioEngine {
   private step = 0;
   private musicPlaying = false;
   private gunshotCount = 0;
+  private trackIndex = 0;
 
   private ensureContext(): AudioContext {
     if (!this.ctx) {
@@ -69,12 +125,37 @@ class AudioEngine {
     return this.musicPlaying;
   }
 
+  /** Shuffle to a different track than the current one (always changes, matching "shuffle through"). */
+  shuffleTrack(): string {
+    if (TRACKS.length > 1) {
+      let next = this.trackIndex;
+      while (next === this.trackIndex) next = Math.floor(Math.random() * TRACKS.length);
+      this.trackIndex = next;
+    }
+    this.step = 0;
+    return TRACKS[this.trackIndex].name;
+  }
+
+  getCurrentTrackName(): string {
+    return TRACKS[this.trackIndex].name;
+  }
+
+  getTrackNames(): string[] {
+    return TRACKS.map((t) => t.name);
+  }
+
   /** Diagnostic only (e.g. surfaced via a debug global for E2E tests) — not used by app logic. */
-  getDebugState(): { contextState: AudioContextState | "none"; musicPlaying: boolean; gunshotCount: number } {
+  getDebugState(): {
+    contextState: AudioContextState | "none";
+    musicPlaying: boolean;
+    gunshotCount: number;
+    trackName: string;
+  } {
     return {
       contextState: this.ctx?.state ?? "none",
       musicPlaying: this.musicPlaying,
       gunshotCount: this.gunshotCount,
+      trackName: this.getCurrentTrackName(),
     };
   }
 
@@ -123,17 +204,18 @@ class AudioEngine {
   private scheduleTick(): void {
     if (!this.musicPlaying || !this.ctx) return;
     const ctx = this.ctx;
-    const beatSec = 60 / BPM;
+    const track = TRACKS[this.trackIndex];
+    const beatSec = 60 / track.bpm;
 
     while (this.nextNoteTime < ctx.currentTime + SCHEDULE_AHEAD_SEC) {
-      const idx = this.step % BASS_PATTERN_HZ.length;
-      const freq = BASS_PATTERN_HZ[idx];
+      const idx = this.step % track.bassPatternHz.length;
+      const freq = track.bassPatternHz[idx];
       this.playBassNote(freq, this.nextNoteTime, beatSec * 0.9);
 
       if (idx % 4 === 2) {
-        this.playStab(this.nextNoteTime + beatSec * 0.5, freq * 2);
+        this.playStab(this.nextNoteTime + beatSec * 0.5, freq * 2, track.stabIntervals);
       }
-      this.playHat(this.nextNoteTime + beatSec * SWING_RATIO);
+      this.playHat(this.nextNoteTime + beatSec * track.swingRatio);
 
       this.step++;
       this.nextNoteTime += beatSec;
@@ -155,12 +237,11 @@ class AudioEngine {
     osc.stop(time + duration + 0.02);
   }
 
-  /** Dissonant minor-third + tritone-ish stab for tension, staccato. */
-  private playStab(time: number, baseFreq: number): void {
+  /** Dissonant stab chord for tension, staccato — voicing varies per track. */
+  private playStab(time: number, baseFreq: number, intervals: number[]): void {
     if (!this.ctx || !this.musicGain) return;
     const ctx = this.ctx;
     const musicGain = this.musicGain;
-    const intervals = [1, 1.1892, 1.4983];
     for (const mult of intervals) {
       const osc = ctx.createOscillator();
       osc.type = "sine";
@@ -201,7 +282,12 @@ export const audioEngine = new AudioEngine();
 declare global {
   interface Window {
     /** Diagnostic-only hook for E2E tests to inspect real audio engine state; unused by app logic. */
-    __wolfAudioDebug?: () => { contextState: AudioContextState | "none"; musicPlaying: boolean; gunshotCount: number };
+    __wolfAudioDebug?: () => {
+      contextState: AudioContextState | "none";
+      musicPlaying: boolean;
+      gunshotCount: number;
+      trackName: string;
+    };
   }
 }
 window.__wolfAudioDebug = () => audioEngine.getDebugState();

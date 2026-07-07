@@ -3,6 +3,7 @@ import { audioEngine } from "../../audio/audioEngine";
 
 export function MusicToggle() {
   const [enabled, setEnabled] = useState(true);
+  const [trackName, setTrackName] = useState(audioEngine.getCurrentTrackName());
 
   // Start once per GamePage mount; the user has already interacted with the
   // page by this point (clicked Create/Join/Start earlier), which is enough
@@ -26,12 +27,28 @@ export function MusicToggle() {
     });
   }
 
+  function shuffle() {
+    setTrackName(audioEngine.shuffleTrack());
+  }
+
   return (
-    <button
-      onClick={toggle}
-      className="rounded-md border border-mafia-panel2 px-3 py-1 text-xs text-mafia-muted hover:border-mafia-accent"
-    >
-      {enabled ? "🎵 Music On" : "🔇 Music Off"}
-    </button>
+    <div className="flex items-center gap-1.5">
+      <button
+        onClick={toggle}
+        className="leather-surface rounded-md bg-mafia-panel2 px-3 py-1 text-xs text-mafia-text hover:brightness-110"
+      >
+        {enabled ? `🎵 ${trackName}` : "🔇 Music Off"}
+      </button>
+      {enabled && (
+        <button
+          onClick={shuffle}
+          title="Shuffle track"
+          aria-label="Shuffle track"
+          className="leather-surface rounded-md bg-mafia-panel2 px-2 py-1 text-xs text-mafia-text hover:brightness-110"
+        >
+          🔀
+        </button>
+      )}
+    </div>
   );
 }

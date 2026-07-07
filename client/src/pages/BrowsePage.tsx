@@ -46,7 +46,7 @@ export function BrowsePage() {
                   {room.playerCount}/{room.maxPlayers} players · {room.code}
                 </div>
               </div>
-              <Button onClick={() => navigate(`/?code=${room.code}`)}>Join</Button>
+              <Button onClick={() => navigate(`/?code=${room.code}`)}>➡️ Join</Button>
             </Card>
           ))}
         </div>

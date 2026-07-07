@@ -12,7 +12,7 @@ export function StartGameButton({ playerCount }: Props) {
   return (
     <div className="space-y-1">
       <Button className="w-full" disabled={!canStart} onClick={() => startGame()}>
-        Start Game
+        🎬 Start Game
       </Button>
       {!canStart && (
         <p className="text-center text-xs text-mafia-muted">

@@ -1,7 +1,36 @@
 import type { VoiceSignal } from "@wolf/shared";
 import { socket } from "../socket/socket";
 
-const ICE_SERVERS: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
+// STUN alone frequently fails to connect two peers across different real-world
+// networks (symmetric NATs, mobile carrier NAT, restrictive firewalls) — it
+// only helps peers discover their public address, it can't relay media when a
+// direct path isn't possible. The free Open Relay Project TURN servers are
+// added as a fallback for exactly that case (best-effort, no uptime SLA — if
+// this ever needs to be rock-solid, swap in a paid/self-hosted TURN server).
+const ICE_SERVERS: RTCIceServer[] = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun.relay.metered.ca:80" },
+  {
+    urls: "turn:global.relay.metered.ca:80",
+    username: "openrelayproject",
+    credential: "openrelayproject",
+  },
+  {
+    urls: "turn:global.relay.metered.ca:80?transport=tcp",
+    username: "openrelayproject",
+    credential: "openrelayproject",
+  },
+  {
+    urls: "turn:global.relay.metered.ca:443",
+    username: "openrelayproject",
+    credential: "openrelayproject",
+  },
+  {
+    urls: "turns:global.relay.metered.ca:443?transport=tcp",
+    username: "openrelayproject",
+    credential: "openrelayproject",
+  },
+];
 const MAX_REBUILD_ATTEMPTS = 5;
 
 interface PeerEntry {

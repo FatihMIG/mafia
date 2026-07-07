@@ -142,6 +142,7 @@ export interface ClientToServerEvents {
   list_public_rooms: (ack: (res: RoomSummary[]) => void) => void;
   add_bot: () => void;
   voice_signal: (payload: VoiceSignalPayload) => void;
+  terminate_room: () => void;
 }
 
 export interface ServerToClientEvents {
@@ -159,4 +160,5 @@ export interface ServerToClientEvents {
   player_reconnected: (payload: PlayerConnectionPayload) => void;
   error: (payload: ErrorPayload) => void;
   voice_signal: (payload: VoiceSignalRelayPayload) => void;
+  room_terminated: () => void;
 }

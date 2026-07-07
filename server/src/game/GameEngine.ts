@@ -105,6 +105,12 @@ export class GameEngine {
     this.events.onChatMessage(message);
   }
 
+  /** Halts all pending timers — call when the room is being torn down out from under the engine. */
+  stop(): void {
+    this.clearTimer();
+    this.clearBotTimers();
+  }
+
   getState(): GameState {
     return {
       phase: this.phase,

@@ -9,11 +9,11 @@ import "./styles/index.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <GameStateProvider>
-      <SocketProvider>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <SocketProvider>
           <App />
-        </BrowserRouter>
-      </SocketProvider>
+        </SocketProvider>
+      </BrowserRouter>
     </GameStateProvider>
   </StrictMode>,
 );

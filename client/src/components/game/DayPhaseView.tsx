@@ -54,7 +54,7 @@ export function DayPhaseView() {
             placeholder="Say something…"
             maxLength={280}
           />
-          <Button onClick={handleSend}>Send</Button>
+          <Button onClick={handleSend}>💬 Send</Button>
         </div>
       ) : (
         <p className="text-center text-sm text-mafia-muted">You are eliminated and can only watch.</p>

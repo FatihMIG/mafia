@@ -7,6 +7,7 @@ import { PlayerList } from "../components/lobby/PlayerList";
 import { RoomCodeBadge } from "../components/lobby/RoomCodeBadge";
 import { HostSettingsPanel } from "../components/lobby/HostSettingsPanel";
 import { StartGameButton } from "../components/lobby/StartGameButton";
+import { TerminateRoomButton } from "../components/lobby/TerminateRoomButton";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 
@@ -48,7 +49,7 @@ export function LobbyPage() {
               disabled={state.players.length >= state.settings.maxPlayers}
               className="text-xs text-mafia-muted hover:text-mafia-accent2 disabled:opacity-40"
             >
-              + Add Bot
+              🤖 + Add Bot
             </button>
           )}
         </div>
@@ -72,9 +73,15 @@ export function LobbyPage() {
             navigate("/");
           }}
         >
-          Leave
+          🚪 Leave
         </Button>
       </div>
+
+      {isHost && (
+        <div className="flex justify-center">
+          <TerminateRoomButton />
+        </div>
+      )}
     </div>
   );
 }

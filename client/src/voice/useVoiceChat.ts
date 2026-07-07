@@ -17,8 +17,10 @@ declare global {
 export function useVoiceChat() {
   const { state } = useGame();
   const [micPermission, setMicPermission] = useState<MicPermissionState>("idle");
+  const [micError, setMicError] = useState<string | null>(null);
   const [selfMuted, setSelfMuted] = useState(false);
   const [remoteStreams, setRemoteStreams] = useState<Record<string, MediaStream>>({});
+  const [peerConnectionStates, setPeerConnectionStates] = useState<Record<string, RTCPeerConnectionState>>({});
   const managerRef = useRef<PeerConnectionManager | null>(null);
   const wasConnected = useRef<Record<string, boolean>>({});
 
@@ -83,26 +85,39 @@ export function useVoiceChat() {
     managerRef.current?.setMicEnabled(shouldTransmit);
   }, [shouldTransmit]);
 
+  // Poll real connection states so the UI can show something more useful than
+  // a binary on/off when a peer is stuck negotiating or has failed to connect.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPeerConnectionStates(managerRef.current?.getConnectionStates() ?? {});
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const requestMic = useCallback(async () => {
     if (micPermission === "granted" || micPermission === "requesting") return;
     setMicPermission("requesting");
+    setMicError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getAudioTracks().forEach((t) => (t.enabled = false));
       managerRef.current?.setLocalStream(stream);
       setMicPermission("granted");
-    } catch {
+    } catch (err) {
+      setMicError(err instanceof Error ? err.name : "Unknown error");
       setMicPermission("denied");
     }
   }, [micPermission]);
 
   return {
     micPermission,
+    micError,
     requestMic,
     isVoiceActivePhase,
     selfMuted,
     setSelfMuted,
     isTransmitting: shouldTransmit,
     remoteStreams,
+    peerConnectionStates,
   };
 }

@@ -93,3 +93,7 @@ export function sendChatMessage(text: string): void {
 export function addBot(): void {
   socket.emit("add_bot");
 }
+
+export function terminateRoom(): void {
+  socket.emit("terminate_room");
+}

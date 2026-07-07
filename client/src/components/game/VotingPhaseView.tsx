@@ -31,9 +31,9 @@ export function VotingPhaseView() {
               <button
                 key={p.id}
                 onClick={() => handleVote(p.id)}
-                className="rounded-md border border-mafia-panel2 bg-mafia-panel2 px-3 py-2 text-sm hover:border-mafia-accent"
+                className="leather-surface rounded-md bg-mafia-panel2 px-3 py-2 text-sm text-mafia-text hover:brightness-110"
               >
-                {p.nickname}
+                🗳️ {p.nickname}
                 {state.voteTally?.tally[p.id] ? (
                   <>
                     {" ("}
@@ -47,7 +47,7 @@ export function VotingPhaseView() {
             onClick={() => handleVote(null)}
             className="rounded-md border border-mafia-panel2 bg-transparent px-3 py-2 text-sm text-mafia-muted hover:border-mafia-accent"
           >
-            Abstain
+            🤷 Abstain
           </button>
         </div>
       )}

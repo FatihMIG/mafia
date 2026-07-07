@@ -63,8 +63,8 @@ export function NightPhaseView() {
             Choice locked in{selected ? `: ${selectablePlayers.find((p) => p.id === selected)?.nickname ?? ""}` : ""}.
             Waiting for the others…
           </p>
-          <Button variant="ghost" onClick={() => setSubmitted(false)}>
-            Cancel
+          <Button variant="secondary" onClick={() => setSubmitted(false)}>
+            ↩️ Cancel
           </Button>
         </div>
       ) : (
@@ -75,8 +75,8 @@ export function NightPhaseView() {
               <button
                 key={p.id}
                 onClick={() => setSelected(p.id)}
-                className={`rounded-md border px-3 py-2 text-sm ${
-                  selected === p.id ? "border-mafia-accent bg-mafia-accent/20" : "border-mafia-panel2 bg-mafia-panel2"
+                className={`leather-surface rounded-md px-3 py-2 text-sm text-mafia-text transition-all ${
+                  selected === p.id ? "bg-mafia-accent2" : "bg-mafia-panel2"
                 }`}
               >
                 {p.nickname}
@@ -84,7 +84,7 @@ export function NightPhaseView() {
             ))}
           </div>
           <Button disabled={!selected} onClick={handleSubmit}>
-            Confirm
+            ✅ Confirm
           </Button>
         </>
       )}

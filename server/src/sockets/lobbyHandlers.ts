@@ -185,6 +185,25 @@ export function registerLobbyHandlers(io: IOServer, socket: IOSocket): void {
     room.addPlayer(bot);
     broadcastRoomUpdate(io, room);
   });
+
+  socket.on("terminate_room", () => {
+    const { room, player } = currentRoomAndPlayer(socket);
+    if (!room || !player || player.id !== room.hostPlayerId) return;
+
+    room.gameEngine?.stop();
+    io.to(room.code).emit("room_terminated");
+
+    for (const p of room.players.values()) {
+      const s = io.sockets.sockets.get(p.socketId);
+      if (s) {
+        s.leave(room.code);
+        s.data.roomCode = undefined;
+        s.data.playerId = undefined;
+      }
+    }
+    roomStore.delete(room.code);
+    logger.info(`room ${room.code} terminated by host`);
+  });
 }
 
 function clamp(value: number, min: number, max: number): number {

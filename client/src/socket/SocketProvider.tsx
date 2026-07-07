@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import type {
   RoomUpdatePayload,
   RoleAssignedPayload,
@@ -18,6 +19,7 @@ import { clearStoredSession } from "../state/session";
 
 export function SocketProvider({ children }: { children: ReactNode }) {
   const { dispatch } = useGame();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onRoomUpdate = (payload: RoomUpdatePayload) => dispatch({ type: "ROOM_UPDATE", ...payload });
@@ -40,7 +42,13 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       if (payload.code === "KICKED") {
         clearStoredSession();
         dispatch({ type: "LEFT_ROOM" });
+        navigate("/", { replace: true });
       }
+    };
+    const onRoomTerminated = () => {
+      clearStoredSession();
+      dispatch({ type: "LEFT_ROOM" });
+      navigate("/", { replace: true });
     };
 
     socket.on("room_update", onRoomUpdate);
@@ -56,6 +64,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     socket.on("player_disconnected", onPlayerDisconnected);
     socket.on("player_reconnected", onPlayerReconnected);
     socket.on("error", onError);
+    socket.on("room_terminated", onRoomTerminated);
 
     return () => {
       socket.off("room_update", onRoomUpdate);
@@ -71,8 +80,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       socket.off("player_disconnected", onPlayerDisconnected);
       socket.off("player_reconnected", onPlayerReconnected);
       socket.off("error", onError);
+      socket.off("room_terminated", onRoomTerminated);
     };
-  }, [dispatch]);
+  }, [dispatch, navigate]);
 
   return <>{children}</>;
 }
