@@ -12,7 +12,6 @@ import { InvestigationLog } from "../components/game/InvestigationLog";
 import { PhaseTransitionOverlay } from "../components/game/PhaseTransitionOverlay";
 import { EliminationRevealOverlay } from "../components/game/EliminationRevealOverlay";
 import { VoiceChatBar } from "../components/game/VoiceChatBar";
-import { MusicToggle } from "../components/game/MusicToggle";
 import { MyRoleBadge } from "../components/game/MyRoleBadge";
 import { TerminateRoomButton } from "../components/lobby/TerminateRoomButton";
 
@@ -76,12 +75,9 @@ export function GamePage() {
             </div>
             <MyRoleBadge />
           </div>
-          <div className="flex items-center gap-3">
-            <MusicToggle />
-            {secondsLeft !== null && (
-              <div className="font-mono text-2xl text-mafia-accent2">{String(secondsLeft).padStart(2, "0")}s</div>
-            )}
-          </div>
+          {secondsLeft !== null && (
+            <div className="font-mono text-2xl text-mafia-accent2">{String(secondsLeft).padStart(2, "0")}s</div>
+          )}
         </div>
 
         <div

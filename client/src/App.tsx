@@ -6,6 +6,7 @@ import { rejoinRoom } from "./state/actions";
 import { AppRoutes } from "./router";
 import { ErrorBanner } from "./components/ui/ErrorBanner";
 import { VersionBadge } from "./components/ui/VersionBadge";
+import { MusicToggle } from "./components/game/MusicToggle";
 
 export function App() {
   const { state, dispatch } = useGame();
@@ -42,6 +43,9 @@ export function App() {
     <>
       <ErrorBanner />
       <AppRoutes />
+      <div className="fixed bottom-2 left-2 z-40">
+        <MusicToggle />
+      </div>
       <VersionBadge />
     </>
   );

@@ -1,35 +1,31 @@
 import { useEffect, useState } from "react";
-import { audioEngine } from "../../audio/audioEngine";
+import { musicPlayer } from "../../audio/musicPlayer";
 
 export function MusicToggle() {
   const [enabled, setEnabled] = useState(true);
-  const [trackName, setTrackName] = useState(audioEngine.getCurrentTrackName());
+  const [trackName, setTrackName] = useState(musicPlayer.getCurrentTrackName());
 
-  // Start once per GamePage mount; the user has already interacted with the
-  // page by this point (clicked Create/Join/Start earlier), which is enough
-  // to satisfy autoplay policy for resuming the shared AudioContext.
+  // Auto-attempt on mount (works once the user has interacted with the page
+  // at all this session — clicking this button itself always works too).
   useEffect(() => {
-    audioEngine.resume().then(() => {
-      if (enabled) audioEngine.startMusic();
-    });
-    return () => {
-      audioEngine.stopMusic();
-    };
+    if (enabled) musicPlayer.play();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function toggle() {
     setEnabled((prev) => {
       const next = !prev;
-      if (next) audioEngine.resume().then(() => audioEngine.startMusic());
-      else audioEngine.stopMusic();
+      if (next) musicPlayer.play();
+      else musicPlayer.pause();
       return next;
     });
   }
 
-  function shuffle() {
-    setTrackName(audioEngine.shuffleTrack());
+  async function shuffle() {
+    setTrackName(await musicPlayer.shuffleTrack());
   }
+
+  if (!musicPlayer.hasTracks()) return null;
 
   return (
     <div className="flex items-center gap-1.5">
