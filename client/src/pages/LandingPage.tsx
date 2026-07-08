@@ -6,6 +6,7 @@ import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Card } from "../components/ui/Card";
 import { Icon } from "../components/ui/Icon";
+import { Modal } from "../components/ui/Modal";
 
 export function LandingPage() {
   const { state, dispatch } = useGame();
@@ -16,6 +17,7 @@ export function LandingPage() {
   const [roomCode, setRoomCode] = useState(searchParams.get("code") ?? "");
   const [isPublic, setIsPublic] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [showObjective, setShowObjective] = useState(false);
 
   const canSubmit = nickname.trim().length > 0 && !busy;
 
@@ -46,17 +48,18 @@ export function LandingPage() {
         <p className="mt-4 font-pixel text-2xl text-mafia-onDarkMuted">A game of trust, lies, and elimination.</p>
       </div>
 
-      <Card className="w-full max-w-md text-sm text-mafia-muted">
-        <p className="mb-1 flex items-center gap-1.5 font-semibold text-mafia-text">
-          <Icon name="info-circle" /> Objective
-        </p>
+      <Button variant="secondary" onClick={() => setShowObjective(true)}>
+        <Icon name="info-circle" /> Objective
+      </Button>
+
+      <Modal open={showObjective} onClose={() => setShowObjective(false)} title="Objective">
         <p>
           The Town must find and vote out every Mafia member hiding among them. Each night the Mafia secretly
           strikes, the Doctor protects someone, and the Detective investigates a suspect. Each day, everyone debates
           and votes someone out. <span className="text-mafia-text">Town wins</span> by eliminating all Mafia —{" "}
           <span className="text-mafia-text">Mafia wins</span> if they ever equal or outnumber the Town.
         </p>
-      </Card>
+      </Modal>
 
       <Card className="w-full max-w-md space-y-6">
         <div className="space-y-2">
