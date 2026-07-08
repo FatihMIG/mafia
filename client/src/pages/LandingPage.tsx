@@ -48,10 +48,6 @@ export function LandingPage() {
         <p className="mt-4 font-pixel text-2xl text-mafia-onDarkMuted">A game of trust, lies, and elimination.</p>
       </div>
 
-      <Button variant="secondary" onClick={() => setShowObjective(true)}>
-        <Icon name="info-circle" /> Objective
-      </Button>
-
       <Modal open={showObjective} onClose={() => setShowObjective(false)} title="Objective">
         <p>
           The Town must find and vote out every Mafia member hiding among them. Each night the Mafia secretly
@@ -119,6 +115,10 @@ export function LandingPage() {
           Browse public rooms <Icon name="arrow-right" />
         </Link>
       </Card>
+
+      <Button variant="secondary" onClick={() => setShowObjective(true)}>
+        <Icon name="info-circle" /> Objective
+      </Button>
     </div>
   );
 }
