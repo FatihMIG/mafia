@@ -27,10 +27,23 @@ const TRACKS: Track[] = Object.entries(trackUrls)
   .map(([path, url]) => ({ name: fileNameToTitle(path), url }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
+// Starts quiet by default — background music shouldn't compete with voice
+// chat or announce itself the moment the page loads. Remembered across
+// sessions so a volume the player picked once sticks.
+const DEFAULT_VOLUME = 0.15;
+const VOLUME_STORAGE_KEY = "wolf-music-volume";
+
+function loadStoredVolume(): number {
+  const raw = localStorage.getItem(VOLUME_STORAGE_KEY);
+  const parsed = raw === null ? NaN : Number(raw);
+  return Number.isFinite(parsed) ? Math.min(1, Math.max(0, parsed)) : DEFAULT_VOLUME;
+}
+
 class MusicPlayer {
   private audio: HTMLAudioElement | null = null;
   private trackIndex = 0;
   private playing = false;
+  private volume = loadStoredVolume();
 
   hasTracks(): boolean {
     return TRACKS.length > 0;
@@ -42,6 +55,16 @@ class MusicPlayer {
 
   isPlaying(): boolean {
     return this.playing;
+  }
+
+  getVolume(): number {
+    return this.volume;
+  }
+
+  setVolume(volume: number): void {
+    this.volume = Math.min(1, Math.max(0, volume));
+    if (this.audio) this.audio.volume = this.volume;
+    localStorage.setItem(VOLUME_STORAGE_KEY, String(this.volume));
   }
 
   async play(): Promise<void> {
@@ -81,7 +104,7 @@ class MusicPlayer {
     if (!this.audio) {
       const audio = new Audio();
       audio.loop = true;
-      audio.volume = 0.35;
+      audio.volume = this.volume;
       audio.preload = "auto";
       this.audio = audio;
     }
@@ -94,11 +117,12 @@ export const musicPlayer = new MusicPlayer();
 declare global {
   interface Window {
     /** Diagnostic-only hook for E2E tests; unused by app logic. */
-    __wolfMusicDebug?: () => { trackName: string; playing: boolean; trackCount: number };
+    __wolfMusicDebug?: () => { trackName: string; playing: boolean; trackCount: number; volume: number };
   }
 }
 window.__wolfMusicDebug = () => ({
   trackName: musicPlayer.getCurrentTrackName(),
   playing: musicPlayer.isPlaying(),
   trackCount: TRACKS.length,
+  volume: musicPlayer.getVolume(),
 });
