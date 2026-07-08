@@ -65,7 +65,7 @@ export function GamePage() {
   if (!joined || !state.game) return null;
 
   return (
-    <div className="min-h-screen bg-mafia-bg px-4 py-8 text-mafia-onDark">
+    <div className="min-h-screen px-4 py-8 text-mafia-onDark">
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

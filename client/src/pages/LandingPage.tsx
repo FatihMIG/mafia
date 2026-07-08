@@ -40,7 +40,7 @@ export function LandingPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-mafia-bg px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-8 px-4">
       <div className="text-center">
         <h1 className="title-8bit font-display text-4xl font-bold sm:text-6xl">MAFIA</h1>
         <p className="mt-4 font-pixel text-2xl text-mafia-onDarkMuted">A game of trust, lies, and elimination.</p>

@@ -33,7 +33,7 @@ export function App() {
 
   if (!state.bootstrapped) {
     return (
-      <div className="flex h-screen items-center justify-center bg-mafia-bg text-mafia-muted">
+      <div className="flex h-screen items-center justify-center text-mafia-muted">
         Reconnecting…
       </div>
     );
