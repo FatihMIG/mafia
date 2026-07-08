@@ -61,7 +61,13 @@ export function VoiceChatBar() {
               {isTransmitting ? "Live" : isVoiceActivePhase ? "Muted" : "Silent (night)"}
             </span>
           ) : (
-            <button onClick={requestMic} className="text-mafia-accent2 hover:underline">
+            <button
+              onClick={requestMic}
+              disabled={micPermission === "requesting"}
+              className={`nes-btn text-xs ${micPermission === "denied" ? "is-error" : "is-primary"} ${
+                micPermission === "requesting" ? "is-disabled" : ""
+              }`}
+            >
               {micPermission === "requesting"
                 ? "Requesting mic…"
                 : micPermission === "denied"
