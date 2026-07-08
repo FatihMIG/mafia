@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { musicPlayer } from "../../audio/musicPlayer";
+import { Icon } from "../ui/Icon";
 
 export function MusicToggle() {
   const [enabled, setEnabled] = useState(true);
@@ -29,11 +30,8 @@ export function MusicToggle() {
 
   return (
     <div className="flex items-center gap-1.5">
-      <button
-        onClick={toggle}
-        className="nes-btn text-xs"
-      >
-        {enabled ? `🎵 ${trackName}` : "🔇 Music Off"}
+      <button onClick={toggle} className="nes-btn text-xs">
+        <Icon name={enabled ? "music" : "sound-mute"} /> {enabled ? trackName : "Music Off"}
       </button>
       {enabled && (
         <button
@@ -42,7 +40,7 @@ export function MusicToggle() {
           aria-label="Shuffle track"
           className="nes-btn text-xs"
         >
-          🔀
+          <Icon name="shuffle" />
         </button>
       )}
     </div>

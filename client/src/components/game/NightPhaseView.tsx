@@ -4,6 +4,7 @@ import { useGame, useMyPlayer } from "../../state/GameContext";
 import { submitNightAction } from "../../state/actions";
 import { ROLE_INFO } from "../../state/roleDisplay";
 import { Button } from "../ui/Button";
+import { Icon } from "../ui/Icon";
 
 const ACTING_ROLES: Role[] = [Role.MAFIA, Role.DOCTOR, Role.DETECTIVE];
 
@@ -65,13 +66,13 @@ export function NightPhaseView() {
             Waiting for the others…
           </p>
           <Button variant="secondary" onClick={() => setSubmitted(false)}>
-            ↩️ Cancel
+            <Icon name="arrow-left" /> Cancel
           </Button>
         </div>
       ) : (
         <>
-          <p className="text-mafia-muted">
-            {ROLE_INFO[state.myRole].icon} {roleInstruction(state.myRole)}
+          <p className="flex items-center justify-center gap-2 text-mafia-muted">
+            <Icon name={ROLE_INFO[state.myRole].icon} /> {roleInstruction(state.myRole)}
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {selectablePlayers.map((p) => (
@@ -85,7 +86,7 @@ export function NightPhaseView() {
             ))}
           </div>
           <Button disabled={!selected} onClick={handleSubmit}>
-            ✅ Confirm
+            <Icon name="check" /> Confirm
           </Button>
         </>
       )}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { terminateRoom } from "../../state/actions";
 import { Button } from "../ui/Button";
+import { Icon } from "../ui/Icon";
 
 export function TerminateRoomButton() {
   const [confirming, setConfirming] = useState(false);
@@ -10,7 +11,7 @@ export function TerminateRoomButton() {
       <div className="flex items-center gap-2 text-sm">
         <span className="text-mafia-onDarkMuted">End the room for everyone?</span>
         <Button variant="danger" onClick={() => terminateRoom()}>
-          🛑 Yes, end it
+          <Icon name="octagon-times" /> Yes, end it
         </Button>
         <Button variant="ghost" onClick={() => setConfirming(false)}>
           Never mind
@@ -21,7 +22,7 @@ export function TerminateRoomButton() {
 
   return (
     <Button variant="danger" onClick={() => setConfirming(true)}>
-      🛑 Terminate Room
+      <Icon name="octagon-times" /> Terminate Room
     </Button>
   );
 }

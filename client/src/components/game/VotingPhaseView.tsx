@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useGame, useMyPlayer } from "../../state/GameContext";
 import { castVote } from "../../state/actions";
 import { AnimatedNumber } from "../ui/AnimatedNumber";
+import { Icon } from "../ui/Icon";
 
 export function VotingPhaseView() {
   const { state } = useGame();
@@ -33,7 +34,7 @@ export function VotingPhaseView() {
                 onClick={() => handleVote(p.id)}
                 className="nes-btn text-sm"
               >
-                🗳️ {p.nickname}
+                <Icon name="vote-yeah" /> {p.nickname}
                 {state.voteTally?.tally[p.id] ? (
                   <>
                     {" ("}
@@ -44,7 +45,7 @@ export function VotingPhaseView() {
               </button>
             ))}
           <button onClick={() => handleVote(null)} className="nes-btn text-sm">
-            🤷 Abstain
+            <Icon name="question-circle" /> Abstain
           </button>
         </div>
       )}

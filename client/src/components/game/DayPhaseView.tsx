@@ -3,6 +3,7 @@ import { useGame, useMyPlayer } from "../../state/GameContext";
 import { sendChatMessage } from "../../state/actions";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
+import { Icon } from "../ui/Icon";
 
 export function DayPhaseView() {
   const { state } = useGame();
@@ -54,7 +55,9 @@ export function DayPhaseView() {
             placeholder="Say something…"
             maxLength={280}
           />
-          <Button onClick={handleSend}>💬 Send</Button>
+          <Button onClick={handleSend}>
+            <Icon name="message-dots" /> Send
+          </Button>
         </div>
       ) : (
         <p className="text-center text-sm text-mafia-muted">You are eliminated and can only watch.</p>

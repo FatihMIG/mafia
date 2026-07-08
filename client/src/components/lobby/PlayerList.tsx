@@ -1,5 +1,6 @@
 import type { PlayerPublic } from "@wolf/shared";
 import { useGame } from "../../state/GameContext";
+import { Icon } from "../ui/Icon";
 
 interface Props {
   players: PlayerPublic[];
@@ -35,7 +36,7 @@ export function PlayerList({ players, onKick, canKick }: Props) {
               onClick={() => onKick?.(player.id)}
               className="text-xs text-mafia-muted hover:text-red-400"
             >
-              👋 Kick
+              <Icon name="user-minus" /> Kick
             </button>
           )}
         </li>

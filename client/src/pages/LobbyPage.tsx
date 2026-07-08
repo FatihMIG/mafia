@@ -10,6 +10,7 @@ import { StartGameButton } from "../components/lobby/StartGameButton";
 import { TerminateRoomButton } from "../components/lobby/TerminateRoomButton";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
+import { Icon } from "../components/ui/Icon";
 
 export function LobbyPage() {
   const { code } = useParams<{ code: string }>();
@@ -49,7 +50,7 @@ export function LobbyPage() {
               disabled={state.players.length >= state.settings.maxPlayers}
               className="text-xs text-mafia-muted hover:text-mafia-accent2 disabled:opacity-40"
             >
-              🤖 + Add Bot
+              <Icon name="robot" /> Add Bot
             </button>
           )}
         </div>
@@ -73,7 +74,7 @@ export function LobbyPage() {
             navigate("/");
           }}
         >
-          🚪 Leave
+          <Icon name="door-open" /> Leave
         </Button>
       </div>
 

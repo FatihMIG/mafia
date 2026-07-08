@@ -1,4 +1,5 @@
 import { useGame } from "../../state/GameContext";
+import { Icon } from "./Icon";
 
 export function ErrorBanner() {
   const { state, dispatch } = useGame();
@@ -13,7 +14,7 @@ export function ErrorBanner() {
           className="text-red-300 hover:text-white"
           aria-label="Dismiss"
         >
-          ✕
+          <Icon name="times" />
         </button>
       </div>
     </div>

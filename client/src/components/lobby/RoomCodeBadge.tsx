@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "../ui/Button";
+import { Icon } from "../ui/Icon";
 
 interface Props {
   roomCode: string;
@@ -21,7 +22,7 @@ export function RoomCodeBadge({ roomCode }: Props) {
         {roomCode}
       </div>
       <Button variant="secondary" onClick={copyLink}>
-        {copied ? "✅ Copied!" : "🔗 Copy Link"}
+        <Icon name={copied ? "check" : "link"} /> {copied ? "Copied!" : "Copy Link"}
       </Button>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useGame } from "../../state/GameContext";
 import { ROLE_INFO } from "../../state/roleDisplay";
+import { Icon } from "../ui/Icon";
 
 export function MyRoleBadge() {
   const { state } = useGame();
@@ -11,7 +12,7 @@ export function MyRoleBadge() {
       className="flex items-center gap-2 border-2 border-mafia-text bg-mafia-panel2 px-3 py-1.5 text-sm text-mafia-text"
       title="Your role — visible only to you"
     >
-      <span className="text-lg">{info.icon}</span>
+      <Icon name={info.icon} className="text-lg" />
       <span className="font-medium">{info.title}</span>
     </div>
   );

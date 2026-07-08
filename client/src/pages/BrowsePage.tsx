@@ -4,6 +4,7 @@ import type { RoomSummary } from "@wolf/shared";
 import { listPublicRooms } from "../state/actions";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
+import { Icon } from "../components/ui/Icon";
 
 const POLL_MS = 3000;
 
@@ -29,8 +30,8 @@ export function BrowsePage() {
     <div className="mx-auto min-h-screen max-w-2xl px-4 py-12 text-mafia-onDark">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="title-8bit font-display text-3xl">Public Rooms</h1>
-        <Link to="/" className="text-sm text-mafia-onDarkMuted hover:text-mafia-onDark">
-          ← Back
+        <Link to="/" className="flex items-center gap-1.5 text-sm text-mafia-onDarkMuted hover:text-mafia-onDark">
+          <Icon name="arrow-left" /> Back
         </Link>
       </div>
 
@@ -46,7 +47,9 @@ export function BrowsePage() {
                   {room.playerCount}/{room.maxPlayers} players · {room.code}
                 </div>
               </div>
-              <Button onClick={() => navigate(`/?code=${room.code}`)}>➡️ Join</Button>
+              <Button onClick={() => navigate(`/?code=${room.code}`)}>
+                <Icon name="arrow-right" /> Join
+              </Button>
             </Card>
           ))}
         </div>

@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useGame, useIsHost } from "../../state/GameContext";
 import { leaveRoom, playAgain } from "../../state/actions";
 import { Button } from "../ui/Button";
+import { Icon } from "../ui/Icon";
 
 export function GameOverScreen() {
   const { state, dispatch } = useGame();
@@ -27,7 +28,9 @@ export function GameOverScreen() {
 
       <div className="flex justify-center gap-3">
         {isHost ? (
-          <Button onClick={() => playAgain()}>🔁 Play Again</Button>
+          <Button onClick={() => playAgain()}>
+            <Icon name="refresh" /> Play Again
+          </Button>
         ) : (
           <p className="text-sm text-mafia-muted">Waiting for the host to start a new round…</p>
         )}
@@ -38,7 +41,7 @@ export function GameOverScreen() {
             navigate("/");
           }}
         >
-          🚪 Back to Landing
+          <Icon name="door-open" /> Back to Landing
         </Button>
       </div>
     </div>

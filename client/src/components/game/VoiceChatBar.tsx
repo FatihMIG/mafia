@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useGame } from "../../state/GameContext";
 import { useVoiceChat } from "../../voice/useVoiceChat";
+import { Icon } from "../ui/Icon";
 
 function RemoteAudio({ stream }: { stream: MediaStream }) {
   const ref = useRef<HTMLAudioElement>(null);
@@ -12,19 +13,21 @@ function RemoteAudio({ stream }: { stream: MediaStream }) {
   return <audio ref={ref} autoPlay playsInline />;
 }
 
-function peerStatusLabel(connectionState: RTCPeerConnectionState | undefined): { text: string; className: string } {
+function peerStatusLabel(
+  connectionState: RTCPeerConnectionState | undefined,
+): { text: string; className: string; dotColor: string } {
   switch (connectionState) {
     case "connected":
-      return { text: "🟢 connected", className: "text-green-400" };
+      return { text: "connected", className: "text-green-400", dotColor: "bg-green-500" };
     case "new":
     case "connecting":
-      return { text: "🟡 connecting…", className: "text-mafia-muted" };
+      return { text: "connecting…", className: "text-mafia-muted", dotColor: "bg-yellow-400" };
     case "failed":
     case "disconnected":
     case "closed":
-      return { text: "🔴 connection issue", className: "text-red-400" };
+      return { text: "connection issue", className: "text-red-400", dotColor: "bg-red-500" };
     default:
-      return { text: "⚪ not connected", className: "text-mafia-muted" };
+      return { text: "not connected", className: "text-mafia-muted", dotColor: "bg-mafia-muted" };
   }
 }
 
@@ -50,7 +53,9 @@ export function VoiceChatBar() {
     <div className="nes-container is-rounded space-y-2 bg-mafia-panel text-sm text-mafia-text">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-mafia-muted">🎙️ Voice chat:</span>
+          <span className="flex items-center gap-1.5 text-mafia-muted">
+            <Icon name="user-headset" /> Voice chat:
+          </span>
           {micPermission === "granted" ? (
             <span className={isTransmitting ? "font-medium text-green-400" : "text-mafia-muted"}>
               {isTransmitting ? "Live" : isVoiceActivePhase ? "Muted" : "Silent (night)"}
@@ -71,7 +76,7 @@ export function VoiceChatBar() {
             onClick={() => setSelfMuted((m) => !m)}
             className="nes-btn text-xs"
           >
-            {selfMuted ? "🔇 Unmute" : "🔊 Mute"}
+            <Icon name={selfMuted ? "sound-mute" : "sound-on"} /> {selfMuted ? "Unmute" : "Mute"}
           </button>
         )}
       </div>
@@ -81,7 +86,8 @@ export function VoiceChatBar() {
           {otherHumans.map((p) => {
             const status = peerStatusLabel(peerConnectionStates[p.id]);
             return (
-              <span key={p.id} className={status.className}>
+              <span key={p.id} className={`flex items-center gap-1.5 ${status.className}`}>
+                <span className={`h-2 w-2 rounded-full ${status.dotColor}`} />
                 {p.nickname}: {status.text}
               </span>
             );
@@ -90,8 +96,11 @@ export function VoiceChatBar() {
       )}
 
       {anyUnhealthy && lastIceError && (
-        <p className="text-xs text-red-400" title="Diagnostic info — helps figure out why a connection isn't going through">
-          ⚠️ network relay issue: {lastIceError}
+        <p
+          className="flex items-center gap-1.5 text-xs text-red-400"
+          title="Diagnostic info — helps figure out why a connection isn't going through"
+        >
+          <Icon name="exclamation-triangle" /> network relay issue: {lastIceError}
         </p>
       )}
 

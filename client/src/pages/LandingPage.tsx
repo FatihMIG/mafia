@@ -5,6 +5,7 @@ import { createRoom, joinRoom } from "../state/actions";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Card } from "../components/ui/Card";
+import { Icon } from "../components/ui/Icon";
 
 export function LandingPage() {
   const { state, dispatch } = useGame();
@@ -46,7 +47,9 @@ export function LandingPage() {
       </div>
 
       <Card className="w-full max-w-md text-sm text-mafia-muted">
-        <p className="mb-1 font-semibold text-mafia-text">🎭 Objective</p>
+        <p className="mb-1 flex items-center gap-1.5 font-semibold text-mafia-text">
+          <Icon name="info-circle" /> Objective
+        </p>
         <p>
           The Town must find and vote out every Mafia member hiding among them. Each night the Mafia secretly
           strikes, the Doctor protects someone, and the Detective investigates a suspect. Each day, everyone debates
@@ -80,7 +83,7 @@ export function LandingPage() {
             </label>
           </div>
           <Button className="w-full" disabled={!canSubmit} onClick={handleCreate}>
-            🃏 Create Room
+            <Icon name="play" /> Create Room
           </Button>
         </div>
 
@@ -101,13 +104,16 @@ export function LandingPage() {
               className="flex-1 uppercase tracking-widest"
             />
             <Button variant="secondary" disabled={!canSubmit || !roomCode.trim()} onClick={handleJoin}>
-              ➡️ Join
+              <Icon name="arrow-right" /> Join
             </Button>
           </div>
         </div>
 
-        <Link to="/browse" className="block text-center text-sm text-mafia-muted hover:text-mafia-text">
-          Browse public rooms →
+        <Link
+          to="/browse"
+          className="flex items-center justify-center gap-1.5 text-center text-sm text-mafia-muted hover:text-mafia-text"
+        >
+          Browse public rooms <Icon name="arrow-right" />
         </Link>
       </Card>
     </div>
