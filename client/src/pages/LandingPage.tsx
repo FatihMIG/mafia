@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useGame } from "../state/GameContext";
 import { createRoom, joinRoom } from "../state/actions";
@@ -18,11 +18,20 @@ export function LandingPage() {
   const [isPublic, setIsPublic] = useState(true);
   const [busy, setBusy] = useState(false);
   const [showObjective, setShowObjective] = useState(false);
+  const nicknameRef = useRef<HTMLInputElement>(null);
 
-  const canSubmit = nickname.trim().length > 0 && !busy;
+  // Missing a name is the single most common reason a friend's "join" click does
+  // nothing, so require it explicitly (with feedback) instead of just disabling
+  // the button — a disabled control with no explanation looks like a broken page.
+  function requireNickname(): boolean {
+    if (nickname.trim().length > 0) return true;
+    dispatch({ type: "ERROR", message: "Enter a name first" });
+    nicknameRef.current?.focus();
+    return false;
+  }
 
   async function handleCreate() {
-    if (!canSubmit) return;
+    if (busy || !requireNickname()) return;
     setBusy(true);
     dispatch({ type: "SET_NICKNAME", nickname: nickname.trim() });
     const res = await createRoom(dispatch, { nickname: nickname.trim(), isPublic });
@@ -32,7 +41,7 @@ export function LandingPage() {
   }
 
   async function handleJoin() {
-    if (!canSubmit || roomCode.trim().length === 0) return;
+    if (busy || roomCode.trim().length === 0 || !requireNickname()) return;
     setBusy(true);
     dispatch({ type: "SET_NICKNAME", nickname: nickname.trim() });
     const res = await joinRoom(dispatch, { nickname: nickname.trim(), roomCode: roomCode.trim() });
@@ -61,6 +70,7 @@ export function LandingPage() {
         <div className="space-y-2">
           <label className="block text-sm text-mafia-muted">Your name</label>
           <Input
+            ref={nicknameRef}
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             placeholder="Enter a nickname"
@@ -81,7 +91,7 @@ export function LandingPage() {
               <span>Public (listed in browse)</span>
             </label>
           </div>
-          <Button className="w-full" disabled={!canSubmit} onClick={handleCreate}>
+          <Button className="w-full" disabled={busy} onClick={handleCreate}>
             <Icon name="play" /> Create Room
           </Button>
         </div>
@@ -102,7 +112,7 @@ export function LandingPage() {
               maxLength={8}
               className="flex-1 uppercase tracking-widest"
             />
-            <Button variant="secondary" disabled={!canSubmit || !roomCode.trim()} onClick={handleJoin}>
+            <Button variant="secondary" disabled={busy || !roomCode.trim()} onClick={handleJoin}>
               <Icon name="arrow-right" /> Join
             </Button>
           </div>

@@ -10,7 +10,7 @@ export function RoomCodeBadge({ roomCode }: Props) {
   const [copied, setCopied] = useState(false);
 
   async function copyLink() {
-    const url = `${window.location.origin}/room/${roomCode}`;
+    const url = `${window.location.origin}${import.meta.env.BASE_URL}room/${roomCode}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
