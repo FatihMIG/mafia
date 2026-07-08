@@ -2,21 +2,26 @@ import type { ButtonHTMLAttributes } from "react";
 
 type Variant = "primary" | "secondary" | "danger" | "ghost";
 
+// NES.css variant classes; "ghost" has no nes-btn equivalent so it stays a
+// plain text control instead of a bordered pixel button.
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: "leather-surface bg-mafia-accent text-mafia-text hover:brightness-110 disabled:bg-mafia-panel2",
-  secondary: "leather-surface bg-mafia-panel2 text-mafia-text hover:brightness-110 disabled:opacity-50",
-  danger: "leather-surface bg-red-950 text-mafia-text hover:brightness-110 disabled:opacity-50",
-  ghost: "bg-transparent text-mafia-muted hover:text-mafia-text disabled:opacity-50",
+  primary: "nes-btn is-primary",
+  secondary: "nes-btn",
+  danger: "nes-btn is-error",
+  ghost: "bg-transparent text-mafia-onDarkMuted hover:text-mafia-onDark underline-offset-4 hover:underline disabled:opacity-50",
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
 }
 
-export function Button({ variant = "primary", className = "", ...props }: ButtonProps) {
+export function Button({ variant = "primary", className = "", disabled, ...props }: ButtonProps) {
+  // nes-btn's disabled look requires both the HTML attribute and this class.
+  const disabledClass = variant !== "ghost" && disabled ? "is-disabled" : "";
   return (
     <button
-      className={`rounded-md px-4 py-2 font-medium tracking-wide transition-all disabled:cursor-not-allowed ${VARIANT_CLASSES[variant]} ${className}`}
+      className={`font-pixel text-xl tracking-wide disabled:cursor-not-allowed ${VARIANT_CLASSES[variant]} ${disabledClass} ${className}`}
+      disabled={disabled}
       {...props}
     />
   );

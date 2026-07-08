@@ -15,7 +15,7 @@ export function StartGameButton({ playerCount }: Props) {
         🎬 Start Game
       </Button>
       {!canStart && (
-        <p className="text-center text-xs text-mafia-muted">
+        <p className="text-center text-xs text-mafia-onDarkMuted">
           Need at least {MIN_PLAYERS} players ({playerCount}/{MIN_PLAYERS})
         </p>
       )}

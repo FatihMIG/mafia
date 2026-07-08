@@ -46,7 +46,7 @@ export function NightPhaseView() {
 
   return (
     <div className="space-y-4 text-center">
-      <h2 className="title-3d-gold font-display text-2xl">Night falls over the town…</h2>
+      <h2 className="font-display text-xl text-mafia-text">Night falls over the town…</h2>
 
       {lastVote && (
         <p className="text-sm text-mafia-muted">
@@ -78,9 +78,7 @@ export function NightPhaseView() {
               <button
                 key={p.id}
                 onClick={() => setSelected(p.id)}
-                className={`leather-surface rounded-md px-3 py-2 text-sm text-mafia-text transition-all ${
-                  selected === p.id ? "bg-mafia-accent2" : "bg-mafia-panel2"
-                }`}
+                className={`nes-btn text-sm ${selected === p.id ? "is-warning" : ""}`}
               >
                 {p.nickname}
               </button>

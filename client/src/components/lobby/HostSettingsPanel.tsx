@@ -8,7 +8,7 @@ interface Props {
 
 export function HostSettingsPanel({ settings }: Props) {
   return (
-    <div className="space-y-3 rounded-md bg-mafia-panel2 p-4">
+    <div className="nes-container is-rounded space-y-3 bg-mafia-panel2 text-mafia-text">
       <h3 className="text-sm font-semibold text-mafia-muted">Host Settings</h3>
 
       <div className="grid grid-cols-3 gap-3">
@@ -32,10 +32,11 @@ export function HostSettingsPanel({ settings }: Props) {
       <label className="flex items-center gap-2 text-sm text-mafia-muted">
         <input
           type="checkbox"
+          className="nes-checkbox"
           checked={settings.isPublic}
           onChange={(e) => updateSettings({ isPublic: e.target.checked })}
         />
-        Public room (listed in browse)
+        <span>Public room (listed in browse)</span>
       </label>
 
       <label className="flex items-center gap-2 text-sm text-mafia-muted">
@@ -44,7 +45,7 @@ export function HostSettingsPanel({ settings }: Props) {
           type="number"
           min={0}
           max={8}
-          className="w-20"
+          className="w-28"
           value={settings.mafiaCountOverride ?? ""}
           placeholder="auto"
           onChange={(e) =>

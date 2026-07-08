@@ -26,10 +26,10 @@ export function BrowsePage() {
   }, []);
 
   return (
-    <div className="mx-auto min-h-screen max-w-2xl px-4 py-12 text-mafia-text">
+    <div className="mx-auto min-h-screen max-w-2xl px-4 py-12 text-mafia-onDark">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="title-3d-gold font-display text-3xl">Public Rooms</h1>
-        <Link to="/" className="text-sm text-mafia-muted hover:text-mafia-text">
+        <h1 className="title-8bit font-display text-3xl">Public Rooms</h1>
+        <Link to="/" className="text-sm text-mafia-onDarkMuted hover:text-mafia-onDark">
           ← Back
         </Link>
       </div>

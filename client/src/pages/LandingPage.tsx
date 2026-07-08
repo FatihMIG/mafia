@@ -41,8 +41,8 @@ export function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-mafia-bg px-4">
       <div className="text-center">
-        <h1 className="title-3d-gold font-display text-6xl font-bold">MAFIA</h1>
-        <p className="mt-2 font-handwritten text-2xl text-mafia-muted">A game of trust, lies, and elimination.</p>
+        <h1 className="title-8bit font-display text-4xl font-bold sm:text-6xl">MAFIA</h1>
+        <p className="mt-4 font-pixel text-2xl text-mafia-onDarkMuted">A game of trust, lies, and elimination.</p>
       </div>
 
       <Card className="w-full max-w-md text-sm text-mafia-muted">
@@ -70,8 +70,13 @@ export function LandingPage() {
           <div className="flex items-center justify-between">
             <span className="text-sm text-mafia-muted">Create a room</span>
             <label className="flex items-center gap-2 text-sm text-mafia-muted">
-              <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-              Public (listed in browse)
+              <input
+                type="checkbox"
+                className="nes-checkbox"
+                checked={isPublic}
+                onChange={(e) => setIsPublic(e.target.checked)}
+              />
+              <span>Public (listed in browse)</span>
             </label>
           </div>
           <Button className="w-full" disabled={!canSubmit} onClick={handleCreate}>

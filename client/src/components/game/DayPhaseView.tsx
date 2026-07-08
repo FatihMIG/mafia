@@ -27,17 +27,17 @@ export function DayPhaseView() {
 
   return (
     <div className="space-y-4">
-      <h2 className="title-3d-gold text-center font-display text-2xl">Daybreak</h2>
+      <h2 className="text-center font-display text-xl text-mafia-text">Daybreak</h2>
       {state.game?.lastNightResult && (
         <p className="text-center text-mafia-muted">
           {killedPlayer ? `${killedPlayer.nickname} was found dead this morning.` : "Everyone survived the night."}
         </p>
       )}
 
-      <div className="h-64 space-y-2 overflow-y-auto rounded-md bg-mafia-panel2 p-3">
+      <div className="h-64 space-y-2 overflow-y-auto border-2 border-mafia-text bg-mafia-panel2 p-3">
         {state.game?.chatLog.map((m) => (
           <div key={m.id} className="text-sm">
-            <span className="font-semibold text-mafia-accent2">{m.nickname}: </span>
+            <span className="font-semibold text-mafia-primary">{m.nickname}: </span>
             <span>{m.text}</span>
           </div>
         ))}

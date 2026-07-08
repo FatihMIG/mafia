@@ -17,7 +17,7 @@ export function RoomCodeBadge({ roomCode }: Props) {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="rounded-md bg-mafia-panel2 px-4 py-2 font-mono text-2xl tracking-[0.3em] text-mafia-accent2">
+      <div className="border-4 border-white bg-mafia-bg px-4 py-2 font-pixel text-2xl tracking-[0.3em] text-mafia-accent2">
         {roomCode}
       </div>
       <Button variant="secondary" onClick={copyLink}>

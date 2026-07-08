@@ -8,7 +8,7 @@ export function TerminateRoomButton() {
   if (confirming) {
     return (
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-mafia-muted">End the room for everyone?</span>
+        <span className="text-mafia-onDarkMuted">End the room for everyone?</span>
         <Button variant="danger" onClick={() => terminateRoom()}>
           🛑 Yes, end it
         </Button>

@@ -47,7 +47,7 @@ export function VoiceChatBar() {
   const anyUnhealthy = otherHumans.some((p) => peerConnectionStates[p.id] !== "connected");
 
   return (
-    <div className="space-y-2 rounded-lg border border-mafia-panel2 bg-mafia-panel px-4 py-3 text-sm">
+    <div className="nes-container is-rounded space-y-2 bg-mafia-panel text-sm text-mafia-text">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-mafia-muted">🎙️ Voice chat:</span>
@@ -69,7 +69,7 @@ export function VoiceChatBar() {
         {micPermission === "granted" && (
           <button
             onClick={() => setSelfMuted((m) => !m)}
-            className="leather-surface rounded-md bg-mafia-panel2 px-3 py-1 text-xs text-mafia-text hover:brightness-110"
+            className="nes-btn text-xs"
           >
             {selfMuted ? "🔇 Unmute" : "🔊 Mute"}
           </button>

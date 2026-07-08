@@ -17,7 +17,7 @@ export function VotingPhaseView() {
 
   return (
     <div className="space-y-4 text-center">
-      <h2 className="title-3d-gold font-display text-2xl">Time to vote</h2>
+      <h2 className="font-display text-xl text-mafia-text">Time to vote</h2>
 
       {!myPlayer?.isAlive ? (
         <p className="text-mafia-muted">You are eliminated and cannot vote.</p>
@@ -31,7 +31,7 @@ export function VotingPhaseView() {
               <button
                 key={p.id}
                 onClick={() => handleVote(p.id)}
-                className="leather-surface rounded-md bg-mafia-panel2 px-3 py-2 text-sm text-mafia-text hover:brightness-110"
+                className="nes-btn text-sm"
               >
                 🗳️ {p.nickname}
                 {state.voteTally?.tally[p.id] ? (
@@ -43,10 +43,7 @@ export function VotingPhaseView() {
                 ) : null}
               </button>
             ))}
-          <button
-            onClick={() => handleVote(null)}
-            className="rounded-md border border-mafia-panel2 bg-transparent px-3 py-2 text-sm text-mafia-muted hover:border-mafia-accent"
-          >
+          <button onClick={() => handleVote(null)} className="nes-btn text-sm">
             🤷 Abstain
           </button>
         </div>

@@ -6,7 +6,7 @@ export function InvestigationLog() {
   if (state.myRole !== Role.DETECTIVE || state.investigationResults.length === 0) return null;
 
   return (
-    <div className="space-y-1 rounded-lg border border-mafia-panel2 bg-mafia-panel p-4 text-sm">
+    <div className="nes-container is-rounded space-y-1 bg-mafia-panel text-sm text-mafia-text">
       <h3 className="font-semibold text-mafia-text">Your investigations</h3>
       {state.investigationResults.map((r, i) => {
         const target = state.players.find((p) => p.id === r.targetPlayerId);

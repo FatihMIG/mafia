@@ -65,13 +65,13 @@ export function GamePage() {
   if (!joined || !state.game) return null;
 
   return (
-    <div className="min-h-screen bg-mafia-bg px-4 py-8 text-mafia-text">
+    <div className="min-h-screen bg-mafia-bg px-4 py-8 text-mafia-onDark">
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="title-3d-gold font-display text-xl">{PHASE_LABELS[state.game.phase]}</h1>
-              <p className="text-xs text-mafia-muted">Round {state.game.round}</p>
+              <h1 className="font-display text-lg text-mafia-accent2">{PHASE_LABELS[state.game.phase]}</h1>
+              <p className="text-xs text-mafia-onDarkMuted">Round {state.game.round}</p>
             </div>
             <MyRoleBadge />
           </div>
@@ -80,10 +80,7 @@ export function GamePage() {
           )}
         </div>
 
-        <div
-          ref={rosterRef}
-          className="flex flex-wrap justify-center gap-3 rounded-lg border border-mafia-panel2 bg-mafia-panel p-4"
-        >
+        <div ref={rosterRef} className="nes-container is-rounded flex flex-wrap justify-center gap-3 bg-mafia-panel">
           {state.players.map((p) => (
             <PlayerAvatar key={p.id} player={p} highlight={p.id === state.playerId} />
           ))}
@@ -92,7 +89,7 @@ export function GamePage() {
 
         <VoiceChatBar />
 
-        <div className="rounded-lg border border-mafia-panel2 bg-mafia-panel p-6">
+        <div className="nes-container is-rounded bg-mafia-panel text-mafia-text">
           <PhaseTransitionOverlay phase={state.game.phase}>
             {(displayPhase) => <PhaseBody phase={displayPhase} />}
           </PhaseTransitionOverlay>

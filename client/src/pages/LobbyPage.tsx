@@ -34,9 +34,9 @@ export function LobbyPage() {
   if (!joined || !state.settings) return null;
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 px-4 py-6 text-mafia-text sm:py-12">
+    <div className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 px-4 py-6 text-mafia-onDark sm:py-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="title-3d-gold font-display text-3xl">Lobby</h1>
+        <h1 className="title-8bit font-display text-3xl">Lobby</h1>
         <RoomCodeBadge roomCode={code!.toUpperCase()} />
       </div>
 
@@ -64,7 +64,7 @@ export function LobbyPage() {
             <StartGameButton playerCount={state.players.length} />
           </div>
         ) : (
-          <p className="flex-1 text-center text-sm text-mafia-muted">Waiting for the host to start…</p>
+          <p className="flex-1 text-center text-sm text-mafia-onDarkMuted">Waiting for the host to start…</p>
         )}
         <Button
           variant="ghost"

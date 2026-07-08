@@ -31,7 +31,7 @@ export function MusicToggle() {
     <div className="flex items-center gap-1.5">
       <button
         onClick={toggle}
-        className="leather-surface rounded-md bg-mafia-panel2 px-3 py-1 text-xs text-mafia-text hover:brightness-110"
+        className="nes-btn text-xs"
       >
         {enabled ? `🎵 ${trackName}` : "🔇 Music Off"}
       </button>
@@ -40,7 +40,7 @@ export function MusicToggle() {
           onClick={shuffle}
           title="Shuffle track"
           aria-label="Shuffle track"
-          className="leather-surface rounded-md bg-mafia-panel2 px-2 py-1 text-xs text-mafia-text hover:brightness-110"
+          className="nes-btn text-xs"
         >
           🔀
         </button>
