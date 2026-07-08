@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { GamePhase, type VoiceSignalRelayPayload } from "@wolf/shared";
+import { GamePhase } from "@wolf/shared";
 import { useGame } from "../state/GameContext";
-import { socket } from "../socket/socket";
 import { PeerConnectionManager } from "./PeerConnectionManager";
 
 export type MicPermissionState = "idle" | "requesting" | "granted" | "denied";
@@ -55,17 +54,6 @@ export function useVoiceChat() {
       window.__wolfVoiceIceError = undefined;
     };
   }, [myPlayerId]);
-
-  // Relay incoming signaling to the manager.
-  useEffect(() => {
-    const onSignal = (payload: VoiceSignalRelayPayload) => {
-      managerRef.current?.handleSignal(payload.fromPlayerId, payload.signal);
-    };
-    socket.on("voice_signal", onSignal);
-    return () => {
-      socket.off("voice_signal", onSignal);
-    };
-  }, []);
 
   // Keep the mesh in sync with the current human roster.
   useEffect(() => {

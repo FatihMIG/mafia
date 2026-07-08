@@ -1,5 +1,5 @@
-import type { VoiceSignal } from "@wolf/shared";
-import { socket } from "../socket/socket";
+import Peer, { type MediaConnection } from "peerjs";
+import { SERVER_URL } from "../socket/socket";
 
 // STUN alone frequently fails to connect two peers across different real-world
 // networks (symmetric NATs, mobile carrier NAT, restrictive firewalls) — it
@@ -52,91 +52,101 @@ async function buildIceServers(): Promise<RTCIceServer[]> {
   }
 }
 
-const MAX_REBUILD_ATTEMPTS = 5;
-
-interface PeerEntry {
-  pc: RTCPeerConnection;
-  isInitiator: boolean;
+function peerServerOptions(): { host: string; port: number; secure: boolean; path: string } {
+  const url = new URL(SERVER_URL);
+  return {
+    host: url.hostname,
+    port: url.port ? Number(url.port) : url.protocol === "https:" ? 443 : 80,
+    secure: url.protocol === "https:",
+    path: "/peerjs",
+  };
 }
 
 /**
- * Plain (non-React) WebRTC mesh manager: one RTCPeerConnection per human peer,
- * signaling relayed through the existing Socket.IO connection. Deterministic
- * lexicographic tie-break decides who initiates each pair's offer, so no
- * coordination is needed to avoid double-offer glare.
+ * A silent (no-op) audio track so an outgoing/incoming call always has a real
+ * sender to negotiate against, even before the user has granted mic access —
+ * mirrors the old addTransceiver-before-track trick. Once getUserMedia
+ * resolves, the real track is swapped in via replaceTrack (see setLocalStream).
+ */
+function silentAudioTrack(): MediaStreamTrack {
+  const ctx = new AudioContext();
+  return ctx.createMediaStreamDestination().stream.getAudioTracks()[0];
+}
+
+const MAX_REBUILD_ATTEMPTS = 5;
+const MAX_PEER_INIT_ATTEMPTS = 4;
+
+interface PeerEntry {
+  call: MediaConnection;
+}
+
+/**
+ * Voice chat mesh built on PeerJS (self-hosted broker — see server/src/index.ts)
+ * instead of hand-rolled WebRTC signaling. One MediaConnection per human peer.
+ * Deterministic lexicographic tie-break decides who places the outgoing call
+ * for each pair, so no coordination is needed to avoid double-call glare —
+ * the other side just answers whatever call it receives.
  */
 export class PeerConnectionManager {
+  private peer: Peer | null = null;
+  private readonly peerReady: Promise<void>;
   private peers = new Map<string, PeerEntry>();
-  private localStream: MediaStream | null = null;
+  private expectedPeerIds = new Set<string>();
+  private localStream: MediaStream;
   private rebuildAttempts = new Map<string, number>();
   private destroyed = false;
   private lastIceError: string | null = null;
-  // Starts STUN-only; upgraded in place once the TURN credential HMAC resolves
-  // (a same-thread crypto computation, no network round-trip — this reliably
-  // completes well before any real peer connection gets created in practice,
-  // so no caller needs to await it directly).
-  private iceServers: RTCIceServer[] = STATIC_ICE_SERVERS;
 
   constructor(
     private myPlayerId: string,
     private onRemoteStream: (peerId: string, stream: MediaStream | null) => void,
   ) {
-    buildIceServers().then((servers) => {
-      this.iceServers = servers;
-    });
+    this.localStream = new MediaStream([silentAudioTrack()]);
+    this.peerReady = buildIceServers().then((iceServers) => this.initPeer(iceServers));
   }
 
   setLocalStream(stream: MediaStream): void {
-    this.localStream = stream;
-    for (const { pc } of this.peers.values()) this.syncLocalTrack(pc);
+    const track = stream.getAudioTracks()[0];
+    if (!track) return;
+    this.localStream = new MediaStream([track]);
+    for (const { call } of this.peers.values()) {
+      call.peerConnection?.getSenders()[0]?.replaceTrack(track).catch(() => {});
+    }
   }
 
   setMicEnabled(enabled: boolean): void {
-    this.localStream?.getAudioTracks().forEach((t) => (t.enabled = enabled));
+    this.localStream.getAudioTracks().forEach((t) => (t.enabled = enabled));
   }
 
-  /** Ensure exactly one connection per id in humanPeerIds (excluding self); close any no longer present. */
+  /** Ensure a call exists (or is expected) for every id in humanPeerIds (excluding self); close any no longer present. */
   syncPeers(humanPeerIds: string[]): void {
     if (this.destroyed) return;
     const wanted = new Set(humanPeerIds.filter((id) => id !== this.myPlayerId));
+    this.expectedPeerIds = wanted;
 
     for (const peerId of [...this.peers.keys()]) {
       if (!wanted.has(peerId)) this.closePeer(peerId);
     }
-    for (const peerId of wanted) {
-      if (!this.peers.has(peerId)) this.createPeer(peerId, this.myPlayerId < peerId);
+    if (!this.peer) {
+      this.peerReady.then(() => this.syncPeers(humanPeerIds));
+      return;
     }
-  }
-
-  handleSignal(fromPlayerId: string, signal: VoiceSignal): void {
-    if (this.destroyed) return;
-
-    if (signal.type === "offer") {
-      let entry = this.peers.get(fromPlayerId);
-      if (!entry) {
-        entry = this.createPeer(fromPlayerId, false);
-      } else if (entry.isInitiator && entry.pc.signalingState === "have-local-offer") {
-        // Polite-peer fallback: we thought we were the initiator but they also offered.
-        // Yield — accept theirs instead of asserting a broken invariant.
-        entry.isInitiator = false;
-      }
-      this.acceptOffer(fromPlayerId, entry, signal.sdp);
-    } else if (signal.type === "answer") {
-      this.peers.get(fromPlayerId)?.pc.setRemoteDescription({ type: "answer", sdp: signal.sdp }).catch(() => {});
-    } else if (signal.type === "ice-candidate") {
-      this.peers.get(fromPlayerId)?.pc.addIceCandidate(signal.candidate).catch(() => {});
+    // Only the lexicographically-smaller id places the outgoing call; the
+    // other side just waits for it and answers via the "call" event.
+    for (const peerId of wanted) {
+      if (!this.peers.has(peerId) && this.myPlayerId < peerId) this.createOutgoingCall(peerId);
     }
   }
 
   closePeer(peerId: string): void {
     const entry = this.peers.get(peerId);
     if (!entry) return;
-    entry.pc.close();
+    entry.call.close();
     this.peers.delete(peerId);
     this.onRemoteStream(peerId, null);
   }
 
-  /** Force a fresh connection to this peer (e.g. after connectionState hits failed/disconnected). */
+  /** Force a fresh call to this peer (e.g. after connectionState hits failed/disconnected). */
   rebuildPeer(peerId: string): void {
     if (this.destroyed) return;
     const attempts = this.rebuildAttempts.get(peerId) ?? 0;
@@ -144,17 +154,19 @@ export class PeerConnectionManager {
     this.rebuildAttempts.set(peerId, attempts + 1);
 
     this.closePeer(peerId);
-    this.createPeer(peerId, this.myPlayerId < peerId);
+    // Only the initiating side re-places the call; the other side's own
+    // connectionstatechange will fire the same way and it'll re-call us.
+    if (this.myPlayerId < peerId) this.createOutgoingCall(peerId);
   }
 
   /** Secondary nudge (e.g. on player_reconnected) — only rebuilds if the connection looks unhealthy. */
   checkAndRebuildIfUnhealthy(peerId: string): void {
     const entry = this.peers.get(peerId);
     if (!entry) {
-      this.rebuildPeer(peerId);
+      if (this.myPlayerId < peerId) this.rebuildPeer(peerId);
       return;
     }
-    const state = entry.pc.connectionState;
+    const state = entry.call.peerConnection?.connectionState;
     if (state !== "connected" && state !== "connecting" && state !== "new") {
       this.rebuildPeer(peerId);
     }
@@ -162,7 +174,10 @@ export class PeerConnectionManager {
 
   /** Diagnostic only (e.g. surfaced via a debug global for E2E tests) — not used by app logic. */
   getConnectionStates(): Record<string, RTCPeerConnectionState> {
-    return Object.fromEntries([...this.peers.entries()].map(([id, entry]) => [id, entry.pc.connectionState]));
+    const result: Record<string, RTCPeerConnectionState> = {};
+    for (const id of this.expectedPeerIds) result[id] = "new";
+    for (const [id, entry] of this.peers) result[id] = entry.call.peerConnection?.connectionState ?? "new";
+    return result;
   }
 
   /** Diagnostic only — most recent ICE candidate-gathering error across any peer, if any. */
@@ -172,77 +187,91 @@ export class PeerConnectionManager {
 
   /** Diagnostic only — whether the local mic track is currently enabled (transmitting). */
   isLocalTrackEnabled(): boolean | null {
-    return this.localStream?.getAudioTracks()[0]?.enabled ?? null;
+    return this.localStream.getAudioTracks()[0]?.enabled ?? null;
   }
 
   destroy(): void {
     this.destroyed = true;
     for (const peerId of [...this.peers.keys()]) this.closePeer(peerId);
-    this.localStream?.getTracks().forEach((t) => t.stop());
-    this.localStream = null;
+    this.localStream.getTracks().forEach((t) => t.stop());
+    this.peer?.destroy();
+    this.peer = null;
   }
 
-  private createPeer(peerId: string, isInitiator: boolean): PeerEntry {
-    const pc = new RTCPeerConnection({ iceServers: this.iceServers });
-    const entry: PeerEntry = { pc, isInitiator };
-    this.peers.set(peerId, entry);
+  private async initPeer(iceServers: RTCIceServer[]): Promise<void> {
+    for (let attempt = 0; attempt < MAX_PEER_INIT_ATTEMPTS && !this.destroyed; attempt++) {
+      const peer = await this.tryCreatePeer(iceServers);
+      if (peer) {
+        this.peer = peer;
+        this.wirePeer(peer);
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
 
-    // Always add an audio transceiver up front, even with no local track yet, so
-    // the offer/answer always has a valid media line (a track-less offer can
-    // otherwise sit at connectionState "new" forever with nothing to negotiate).
-    // The real track is swapped in later via replaceTrack — no renegotiation needed.
-    pc.addTransceiver("audio", { direction: "sendrecv" });
-    this.syncLocalTrack(pc);
+  /** Resolves the connected Peer, or null if the id was taken (e.g. a stale registration from a just-reloaded tab hasn't expired yet — worth a retry) or another fatal error occurred. */
+  private tryCreatePeer(iceServers: RTCIceServer[]): Promise<Peer | null> {
+    return new Promise((resolve) => {
+      const { host, port, secure, path } = peerServerOptions();
+      const peer = new Peer(this.myPlayerId, { host, port, secure, path, config: { iceServers } });
+      const onOpen = () => {
+        cleanup();
+        resolve(peer);
+      };
+      const onError = (err: { type?: string; message?: string }) => {
+        cleanup();
+        peer.destroy();
+        if (err?.type !== "unavailable-id") console.warn("[voice] peerjs error", err);
+        resolve(null);
+      };
+      function cleanup() {
+        peer.off("open", onOpen);
+        peer.off("error", onError);
+      }
+      peer.once("open", onOpen);
+      peer.once("error", onError);
+    });
+  }
 
-    pc.ontrack = (e) => this.onRemoteStream(peerId, e.streams[0] ?? null);
+  private wirePeer(peer: Peer): void {
+    peer.on("call", (call) => {
+      call.answer(this.localStream);
+      this.attachCall(call.peer, call);
+    });
+    // The broker (signaling) connection dropping doesn't mean media
+    // connections died — just try to re-register with the same id.
+    peer.on("disconnected", () => {
+      if (!this.destroyed) peer.reconnect();
+    });
+    peer.on("error", (err) => console.warn("[voice] peerjs error", err));
+  }
+
+  private createOutgoingCall(peerId: string): void {
+    if (!this.peer) return;
+    const call = this.peer.call(peerId, this.localStream);
+    this.attachCall(peerId, call);
+  }
+
+  private attachCall(peerId: string, call: MediaConnection): void {
+    this.peers.set(peerId, { call });
+    call.on("stream", (remoteStream) => this.onRemoteStream(peerId, remoteStream));
+    call.on("close", () => {
+      this.peers.delete(peerId);
+      this.onRemoteStream(peerId, null);
+    });
+    call.on("error", (err) => console.warn(`[voice] call error for ${peerId}`, err));
+
+    const pc = call.peerConnection;
+    if (!pc) return;
     pc.onicecandidateerror = (e) => {
       const err = e as RTCPeerConnectionIceErrorEvent;
       this.lastIceError = `${err.errorCode} ${err.errorText} (${err.url})`;
       console.warn(`[voice] ICE candidate error for ${peerId}:`, this.lastIceError);
     };
-    pc.onicecandidate = (e) => {
-      if (e.candidate) {
-        socket.emit("voice_signal", {
-          toPlayerId: peerId,
-          signal: { type: "ice-candidate", candidate: e.candidate.toJSON() },
-        });
-      }
-    };
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === "connected") this.rebuildAttempts.delete(peerId);
       if (pc.connectionState === "failed" || pc.connectionState === "disconnected") this.rebuildPeer(peerId);
     };
-
-    if (isInitiator) this.makeOffer(peerId, entry);
-    return entry;
-  }
-
-  private syncLocalTrack(pc: RTCPeerConnection): void {
-    const track = this.localStream?.getAudioTracks()[0] ?? null;
-    const sender = pc.getTransceivers()[0]?.sender;
-    sender?.replaceTrack(track).catch(() => {});
-  }
-
-  private async makeOffer(peerId: string, entry: PeerEntry): Promise<void> {
-    try {
-      const offer = await entry.pc.createOffer();
-      await entry.pc.setLocalDescription(offer);
-      socket.emit("voice_signal", { toPlayerId: peerId, signal: { type: "offer", sdp: offer.sdp ?? "" } });
-    } catch (err) {
-      // A connectionstatechange-triggered rebuild will retry if this peer never comes up.
-      console.warn("[voice] failed to create offer for", peerId, err);
-    }
-  }
-
-  private async acceptOffer(peerId: string, entry: PeerEntry, sdp: string): Promise<void> {
-    try {
-      await entry.pc.setRemoteDescription({ type: "offer", sdp });
-      const answer = await entry.pc.createAnswer();
-      await entry.pc.setLocalDescription(answer);
-      socket.emit("voice_signal", { toPlayerId: peerId, signal: { type: "answer", sdp: answer.sdp ?? "" } });
-    } catch (err) {
-      // ignore — a rebuild will retry
-      console.warn("[voice] failed to accept offer from", peerId, err);
-    }
   }
 }

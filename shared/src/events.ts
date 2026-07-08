@@ -105,29 +105,6 @@ export interface ErrorPayload {
   message: string;
 }
 
-/** Mirrors RTCIceCandidateInit's shape without depending on the DOM lib (this package stays environment-agnostic). */
-export interface IceCandidateInit {
-  candidate?: string;
-  sdpMLineIndex?: number | null;
-  sdpMid?: string | null;
-  usernameFragment?: string | null;
-}
-
-export type VoiceSignal =
-  | { type: "offer"; sdp: string }
-  | { type: "answer"; sdp: string }
-  | { type: "ice-candidate"; candidate: IceCandidateInit };
-
-export interface VoiceSignalPayload {
-  toPlayerId: string;
-  signal: VoiceSignal;
-}
-
-export interface VoiceSignalRelayPayload {
-  fromPlayerId: string;
-  signal: VoiceSignal;
-}
-
 export interface ClientToServerEvents {
   create_room: (payload: CreateRoomPayload, ack: (res: CreateRoomAck | AckError) => void) => void;
   join_room: (payload: JoinRoomPayload, ack: (res: JoinRoomAck | AckError) => void) => void;
@@ -141,7 +118,6 @@ export interface ClientToServerEvents {
   send_chat_message: (payload: SendChatMessagePayload) => void;
   list_public_rooms: (ack: (res: RoomSummary[]) => void) => void;
   add_bot: () => void;
-  voice_signal: (payload: VoiceSignalPayload) => void;
   terminate_room: () => void;
   play_again: () => void;
 }
@@ -160,6 +136,5 @@ export interface ServerToClientEvents {
   player_disconnected: (payload: PlayerConnectionPayload) => void;
   player_reconnected: (payload: PlayerConnectionPayload) => void;
   error: (payload: ErrorPayload) => void;
-  voice_signal: (payload: VoiceSignalRelayPayload) => void;
   room_terminated: () => void;
 }

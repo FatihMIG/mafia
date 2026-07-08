@@ -14,6 +14,7 @@
     "@wolf/shared": "*",
     "gsap": "^3.12.5",
     "nes.css": "^2.3.0",
+    "peerjs": "^1.5.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
